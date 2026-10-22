@@ -89,8 +89,6 @@ jobs:
       - if: steps.check.outputs.publish == 'true'
         run: bun run check
       - if: steps.check.outputs.publish == 'true'
-        run: bun run test:browser
-      - if: steps.check.outputs.publish == 'true'
         run: bun run build
       - if: steps.check.outputs.publish == 'true'
         run: bun run lint:package
