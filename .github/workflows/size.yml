@@ -17,9 +17,12 @@ jobs:
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version-file: package.json
-      - uses: andresz1/size-limit-action@v1
+      # The action installs with npm, which can't resolve bun's workspace: protocol,
+      # so the workspace is installed here and the action's install step is skipped.
+      - run: bun install --frozen-lockfile
+      - uses: andresz1/size-limit-action@v1.8.0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          package_manager: bun
+          skip_step: install
           directory: packages/vue-pdf-document
           build_script: build

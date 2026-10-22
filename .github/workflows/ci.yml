@@ -14,8 +14,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      # Codecov authenticates the upload with the workflow's OIDC token, so no secret is needed.
-      id-token: write
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
@@ -41,7 +39,7 @@ jobs:
         uses: codecov/codecov-action@v5
         with:
           files: packages/vue-pdf-document/coverage/lcov.info
-          use_oidc: true
+          token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: false
       - name: Test in real browsers
         run: |
