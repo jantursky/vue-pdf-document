@@ -219,16 +219,26 @@ const loadLogo = (event: Event) => {
             <span role="columnheader"><span class="sr-only">Actions</span></span>
           </div>
           <div v-for="(item, index) in invoice.items" :key="item.id" class="gen-item" role="row" data-item>
-            <input v-model="item.description" aria-label="Description" placeholder="What you delivered" />
-            <input v-model.number="item.quantity" aria-label="Quantity" type="number" min="0" step="any" />
-            <input v-model="item.unit" aria-label="Unit" />
-            <input v-model.number="item.unitPrice" aria-label="Unit price" type="number" min="0" step="0.01" />
-            <input v-model.number="item.discount" aria-label="Discount" type="number" min="0" max="100" step="any" />
-            <select v-model.number="item.vatRate" aria-label="VAT rate" :disabled="!invoice.vatPayer">
-              <option v-for="rate in VAT_RATES" :key="rate" :value="rate">{{ rate }}</option>
-            </select>
-            <span class="gen-amount">{{ f.money(lineTotal(item)) }}</span>
-            <span class="gen-actions">
+            <span role="cell"
+              ><input v-model="item.description" aria-label="Description" placeholder="What you delivered"
+            /></span>
+            <span role="cell"
+              ><input v-model.number="item.quantity" aria-label="Quantity" type="number" min="0" step="any"
+            /></span>
+            <span role="cell"><input v-model="item.unit" aria-label="Unit" /></span>
+            <span role="cell"
+              ><input v-model.number="item.unitPrice" aria-label="Unit price" type="number" min="0" step="0.01"
+            /></span>
+            <span role="cell"
+              ><input v-model.number="item.discount" aria-label="Discount" type="number" min="0" max="100" step="any"
+            /></span>
+            <span role="cell">
+              <select v-model.number="item.vatRate" aria-label="VAT rate" :disabled="!invoice.vatPayer">
+                <option v-for="rate in VAT_RATES" :key="rate" :value="rate">{{ rate }}</option>
+              </select>
+            </span>
+            <span class="gen-amount" role="cell">{{ f.money(lineTotal(item)) }}</span>
+            <span class="gen-actions" role="cell">
               <button type="button" :disabled="index === 0" aria-label="Move up" @click="moveItem(index, -1)">↑</button>
               <button
                 type="button"

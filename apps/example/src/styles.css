@@ -14,7 +14,8 @@
   --fg: #0a0e1c;
   --fg-2: #475269;
   --muted: #56575a;
-  --faint: #868789;
+  /* Dark enough for 4.5:1 on white and on the canvas. */
+  --faint: #6b6c70;
   --border: #e5e7eb;
   --border-strong: #cbd1e1;
   --code-bg: #f8f9fc;
@@ -28,7 +29,7 @@
   --syntax-name: #0550ae;
   --syntax-attr: #6639ba;
   --syntax-number: #cf222e;
-  --syntax-comment: #868789;
+  --syntax-comment: #6b6c70;
 
   --shadow-md: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
   --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
@@ -284,7 +285,7 @@ li code {
   letter-spacing: -0.025em;
 }
 
-.section-head p {
+.section-head p:not(.tag) {
   margin: 0;
   font-size: 17px;
   line-height: 1.6;
@@ -1041,6 +1042,10 @@ input[type='color'] {
   grid-template-columns: minmax(120px, 1fr) 56px 44px 72px 52px 56px 84px 76px;
   gap: 4px;
   align-items: center;
+}
+
+.gen-item > [role='cell'] {
+  min-width: 0;
 }
 
 .gen-item input,

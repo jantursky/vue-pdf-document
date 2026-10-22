@@ -89,6 +89,7 @@ Tests come in five layers:
 - **Types** (`test/types.test.ts`): `expectTypeOf` and `@ts-expect-error` assertions that `bun run typecheck` enforces.
 - **Browser** (`test/browser`): pdfkit's browser build in Chromium, Firefox and WebKit, the way an app's bundler loads it.
 - **End-to-end** (`apps/example/e2e`, Playwright): the built demo, with live previews, re-rendering, downloads and pagination, and the invoice generator's totals, language, QR code, logo, saved draft and JSON import.
+- **Accessibility** (`apps/example/e2e/a11y.spec.ts`, axe-core): the demo's overview and generator against WCAG 2.2 A and AA, in the light and dark themes.
 - **Package** (`scripts/pack-test.js`): the tarball installed into an empty project, imported and required from plain Node.
 
 The code samples in the package README and the getting-started page are copied into `apps/example/src/typecheck` by `bun run sync:samples` and compiled with the demo; `bun run check` fails if a copy is stale.
