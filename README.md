@@ -90,6 +90,7 @@ Tests come in five layers:
 - **Browser** (`test/browser`): pdfkit's browser build in Chromium, Firefox and WebKit, the way an app's bundler loads it.
 - **End-to-end** (`apps/example/e2e`, Playwright): the built demo, with live previews, re-rendering, downloads and pagination, and the invoice generator's totals, language, QR code, logo, saved draft and JSON import.
 - **Accessibility** (`apps/example/e2e/a11y.spec.ts`, axe-core): the demo's overview and generator against WCAG 2.2 A and AA, in the light and dark themes.
+- **Vue versions** (CI): the library's typecheck and unit tests against Vue 3.5.0, the oldest version its peer range allows, and the newest one on npm.
 - **Package** (`scripts/pack-test.js`): the tarball installed into an empty project, imported and required from plain Node.
 
 The code samples in the package README and the getting-started page are copied into `apps/example/src/typecheck` by `bun run sync:samples` and compiled with the demo; `bun run check` fails if a copy is stale.
