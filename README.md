@@ -83,7 +83,7 @@ bun run lint:fix       # fix what ESLint can fix
 
 `bun run build` ends with [size-limit](https://github.com/ai/size-limit) and fails if the library's own code grows past 6 kB minified and gzipped, or if the library together with the layout engine, as a browser app ships it, passes 450 kB (it's about 370 kB today). The budgets are in `packages/vue-pdf-document/.size-limit.json`, and `.github/workflows/size.yml` comments the change on every pull request. Coverage goes to [Codecov](https://codecov.io/gh/jantursky/vue-pdf-document) from CI. Coverage has minimum thresholds, so `bun run check` fails if they drop.
 
-Tests come in five layers:
+Tests come in seven layers:
 
 - **Unit** (`packages/vue-pdf-document/test`, Vitest + happy-dom): the renderer, the snapshot, the components and the composable. They render real PDFs in Node and read the text, metadata and page count back out.
 - **Types** (`test/types.test.ts`): `expectTypeOf` and `@ts-expect-error` assertions that `bun run typecheck` enforces.
