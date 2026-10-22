@@ -148,15 +148,18 @@ test('exports and imports the invoice as JSON', async ({ page }) => {
 
 test('paginates long invoices with the table header on every page', async ({ page }) => {
   const { src } = await nextPdf(page)
-  for (let i = 0; i < 30; i += 1) await page.getByRole('button', { name: 'Add item' }).click()
+  const number = await page.locator('#gen-number').inputValue()
+  const [download] = await Promise.all([
+    waitForDownload(page, `invoice-${number}.json`),
+    page.getByRole('button', { name: 'Export JSON' }).click(),
+  ])
+  const invoice = JSON.parse(await readFile(await download.path(), 'utf8')) as { items: { id: number }[] }
+  const extra = Array.from({ length: 30 }, (_, i) => ({ ...invoice.items[0], id: 100 + i, description: `Item ${i}` }))
+  await page.locator('[data-import-input]').setInputFiles({
+    name: 'long.json',
+    mimeType: 'application/json',
+    buffer: Buffer.from(JSON.stringify({ ...invoice, items: [...invoice.items, ...extra] })),
+  })
   await expect(page.locator('[data-item]')).toHaveCount(34)
-  // A slow engine can finish a render while items are still being added, so wait for the final one.
-  let latest = src
-  await expect
-    .poll(async () => {
-      const pdf = await nextPdf(page, latest)
-      latest = pdf.src
-      return pdf.pages
-    })
-    .toBe(2)
+  expect((await nextPdf(page, src)).pages).toBe(2)
 })
