@@ -1,0 +1,52 @@
+name: Release
+
+# Pushing a tag such as v1.1.0 runs every check, publishes the package to npm with
+# provenance, and creates a GitHub release from the matching CHANGELOG section.
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+  # npm trusted publishing and provenance use the workflow's OIDC token.
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment: npm
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+      # Trusted publishing needs npm 11.5 or newer.
+      - run: npm install -g npm@11
+      - run: bun install --frozen-lockfile
+      - name: Tag matches the package version
+        run: |
+          version=$(node -p "require('./packages/vue-pdf-document/package.json').version")
+          test "v$version" = "$GITHUB_REF_NAME" || { echo "Tag $GITHUB_REF_NAME does not match version $version"; exit 1; }
+      - run: bunx playwright install --with-deps chromium firefox webkit
+      - run: bun run check
+      - run: bun run test:browser
+      - run: bun run build
+      - run: bun run lint:package
+      - run: bun run test:pack
+      - run: bun run test:e2e
+      - name: Publish to npm
+        working-directory: packages/vue-pdf-document
+        # The checks above already ran; prepublishOnly would repeat them.
+        run: npm publish --provenance --access public --ignore-scripts
+      - name: Create the GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          awk -v v="$version" '$0 ~ "^## \\[" v "\\]" {found=1; next} found && /^## \[/ {exit} found' \
+            packages/vue-pdf-document/CHANGELOG.md > notes.md
+          gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" --notes-file notes.md

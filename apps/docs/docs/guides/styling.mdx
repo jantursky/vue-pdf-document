@@ -1,0 +1,53 @@
+---
+title: Styling
+description: Style objects, units, flexbox and reusable styles.
+---
+
+Styles are plain objects with camelCase keys, laid out by Yoga's flexbox. The rules are [react-pdf's](https://react-pdf.org/styling); this page covers how they look in Vue.
+
+```vue
+<script setup lang="ts">
+import { StyleSheet, Text, View } from 'vue-pdf-document'
+
+const styles = StyleSheet.create({
+  row: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 6 },
+  muted: { color: '#6b7280' },
+  total: { fontFamily: 'Helvetica-Bold' },
+})
+
+defineProps<{ label: string; amount: string; isTotal?: boolean }>()
+</script>
+
+<template>
+  <View :style="styles.row">
+    <Text :style="[styles.muted, isTotal && styles.total]">{{ label }}</Text>
+    <Text :style="isTotal && styles.total">{{ amount }}</Text>
+  </View>
+</template>
+```
+
+## What's supported
+
+- **Layout:** flexbox (`flexDirection`, `justifyContent`, `alignItems`, `flexGrow`, `gap`, `flexWrap`), `position: 'absolute'` with `top`/`right`/`bottom`/`left`, `width`/`height` with min and max, margins and paddings with the `Horizontal`/`Vertical` shorthands.
+- **Units:** points by default (`12` is 12pt), plus `in`, `mm`, `cm`, `%`, `vw` and `vh`.
+- **Text:** `fontFamily`, `fontSize`, `fontWeight`, `fontStyle`, `lineHeight`, `textAlign`, `textDecoration`, `textTransform`, `letterSpacing`, `color`.
+- **Boxes:** `backgroundColor`, `border` and its per-side and per-property forms, `borderRadius`, `opacity`, `transform`.
+- **Media queries** on page size, such as `'@media max-width: 400': { … }`.
+
+Text properties such as `fontFamily`, `fontSize` and `color` are inherited from ancestors, so setting them on `<Page>` sets the default for the page. Box properties aren't inherited.
+
+## Arrays and conditions
+
+`:style` accepts an array, merged left to right. `false`, `null` and `undefined` entries are skipped, so `cond && styles.x` works.
+
+## Shared styles
+
+`StyleSheet.create()` returns its argument. It exists so editors check values like `flexDirection: 'row'` against the allowed ones, and so styles can move between react-pdf and Vue projects as-is.
+
+## Debugging
+
+`debug` on any element draws its box, padding and margin onto the page:
+
+```vue
+<View debug :style="styles.row">…</View>
+```

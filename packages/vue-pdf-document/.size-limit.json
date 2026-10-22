@@ -1,0 +1,26 @@
+[
+  {
+    "name": "Library code (engine excluded)",
+    "path": "dist/index.js",
+    "ignore": [
+      "vue",
+      "@react-pdf/fns",
+      "@react-pdf/font",
+      "@react-pdf/layout",
+      "@react-pdf/primitives",
+      "@react-pdf/render",
+      "@react-pdf/types",
+      "pdfkit"
+    ],
+    "gzip": true,
+    "limit": "6 kB"
+  },
+  {
+    "name": "With the layout engine, as a browser app ships it",
+    "path": "dist/index.js",
+    "import": "{ Document, Page, Text, renderToBlob }",
+    "ignore": ["vue"],
+    "gzip": true,
+    "limit": "450 kB"
+  }
+]

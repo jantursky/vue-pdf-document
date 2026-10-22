@@ -1,0 +1,50 @@
+---
+title: Templates
+description: How react-pdf's props, styles, flags and render props are written in a Vue template.
+---
+
+The primitives take the same props as their react-pdf counterparts. A few things read differently in a template.
+
+## Attributes and flags
+
+Attributes can be written in kebab-case; they reach the engine in camelCase, so `min-presence-ahead="40"` becomes `minPresenceAhead`. The flags `fixed`, `break`, `debug`, `wrap` and `cache` are declared as boolean props, so a bare attribute means `true`:
+
+```vue
+<View fixed>…</View>
+<View :wrap="false">…</View>
+<Text break>Starts on a new page</Text>
+```
+
+## Styles
+
+`:style` takes an object or an array of objects, merged left to right with falsy entries skipped. Units, flexbox and the rest of the style rules are [react-pdf's](https://react-pdf.org/styling).
+
+```vue
+<View :style="[styles.row, isTotal && styles.bold, { marginTop: 12 }]" />
+```
+
+`StyleSheet.create()` returns its argument unchanged, typed so editors can autocomplete style keys.
+
+## Text
+
+Strings belong inside `<Text>`, `<Link>`, `<Note>` or `<Tspan>`. A string anywhere else is dropped with a console warning, as in react-pdf. Interpolation, `v-if` and `v-for` work inside text as usual:
+
+```vue
+<Text>Bill to {{ customer }}<Text v-if="vip"> (VIP)</Text></Text>
+```
+
+## Page numbers
+
+react-pdf's `render` prop is called during pagination, when the page numbers are known. In a template, use the `#render` slot on `<Text>` or `<View>`:
+
+```vue
+<Text fixed :style="{ position: 'absolute', bottom: 20, left: 0, right: 0, textAlign: 'center' }">
+  <template #render="{ pageNumber, totalPages }">Page {{ pageNumber }} of {{ totalPages }}</template>
+</Text>
+```
+
+The `render` prop also works, and may return a string, a number or vnodes.
+
+## Limits
+
+The document is mounted as its own Vue app, so it doesn't see `provide`/`inject`, plugins or global components from the page that shows it. Pass what it needs as props. Async setup and `<Suspense>` aren't awaited; load data first, then render.

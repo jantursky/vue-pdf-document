@@ -1,0 +1,45 @@
+---
+title: Server-side rendering
+description: Render PDFs in Node, in a Nuxt server route or in a worker.
+---
+
+`renderToBuffer()` returns a `Uint8Array` and needs no DOM, so it runs in Node 22, in workers and in edge runtimes that allow `fetch` for remote images and fonts.
+
+```ts server.ts
+import { createServer } from 'node:http'
+
+import { renderToBuffer } from 'vue-pdf-document'
+
+import InvoiceDocument from './InvoiceDocument.vue'
+
+createServer(async (request, response) => {
+  const pdf = await renderToBuffer(InvoiceDocument, { customer: 'Ada', total: 42 })
+  response.writeHead(200, { 'content-type': 'application/pdf', 'content-length': pdf.length })
+  response.end(pdf)
+}).listen(3000)
+```
+
+`.vue` files have to be compiled first, which Nuxt, Vite's SSR build or `vite-node` already do. In a plain Node script, write the document with render functions:
+
+```ts
+import { h } from 'vue'
+import { Document, Page, Text, renderToBuffer } from 'vue-pdf-document'
+
+const Hello = { render: () => h(Document, () => h(Page, () => h(Text, () => 'Hello'))) }
+const pdf = await renderToBuffer(Hello)
+```
+
+## Nuxt
+
+In a server route, return the bytes with the right header:
+
+```ts server/api/invoice.get.ts
+import { renderToBuffer } from 'vue-pdf-document'
+
+import InvoiceDocument from '~/components/InvoiceDocument.vue'
+
+export default defineEventHandler(async (event) => {
+  setHeader(event, 'content-type', 'application/pdf')
+  return renderToBuffer(InvoiceDocument, { customer: 'Ada', total: 42 })
+})
+```

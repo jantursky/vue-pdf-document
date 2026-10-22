@@ -1,0 +1,30 @@
+---
+title: Examples
+description: A live preview, an invoice driven by a form, and a paginated report, each next to the files that run it.
+sidebar:
+  order: 4
+---
+
+Each preview runs a page component that shows a document component. Switch to the **Code** tab to read it. The same files run in the demo app under `apps/example`.
+
+## Minimal
+
+One page and one prop. Type a name and the preview renders again after a short debounce.
+
+<Component path="MinimalExample" />
+
+## Invoice
+
+A reactive form drives the document: rows from `v-for`, a `PAID` stamp behind `v-if`, a computed total, and a `<PdfDownloadLink>` whose file name follows the invoice number.
+
+<Component path="InvoiceExample" />
+
+## Report
+
+Move the slider to add sections. The engine splits them across pages, repeats the `fixed` header and footer on each one, keeps a heading with the start of its text through `min-presence-ahead`, and fills in page numbers from the `#render` slot.
+
+<Component path="ReportExample" />
+
+## Invoice generator
+
+The demo app has a complete invoice generator on its [own tab](https://vue-pdf-document.vercel.app/#generator): VAT per rate, discounts, reverse charge, an EPC payment QR code, a logo upload, English or Slovak with an embedded Roboto font, and a table header that repeats on every page. One `usePdf()` call feeds both the preview and the download. Its source is in `apps/example/src/generator`.

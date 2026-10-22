@@ -1,0 +1,51 @@
+---
+title: Images, links and bookmarks
+description: Embed images, link to URLs or other pages, and build the PDF outline.
+---
+
+## Images
+
+`<Image>` takes PNG and JPEG from a URL, a data URI, a buffer, or a request object:
+
+```vue
+<Image src="/logo.png" :style="{ width: 120 }" />
+<Image :src="{ uri: 'https://example.com/chart.png', method: 'GET', headers: { Authorization: token } }" />
+<Image :src="() => fetchSignedUrl()" />
+```
+
+Remote images are fetched during layout, so a URL must allow cross-origin requests when rendering in the browser. Images are cached between renders; set `:cache="false"` to fetch them again.
+
+SVG files aren't images in a PDF. Draw vector graphics with the `<Svg>` primitives instead:
+
+```vue
+<Svg :width="40" :height="40" view-box="0 0 24 24">
+  <Path d="M12 2 2 22h20L12 2Z" fill="#0d9488" />
+</Svg>
+```
+
+## Links
+
+`<Link>` wraps text and becomes a clickable annotation:
+
+```vue
+<Text>
+  Questions? <Link src="mailto:billing@example.com">billing@example.com</Link>
+</Text>
+<Link src="#terms">Terms</Link>
+…
+<View id="terms" break>…</View>
+```
+
+A `src` starting with `#` jumps to the element with that `id`.
+
+## Bookmarks
+
+`bookmark` on any element adds it to the outline shown in the viewer's sidebar. Nest bookmarks by nesting the elements that carry them:
+
+```vue
+<Page bookmark="Chapter 1">
+  <Text :bookmark="{ title: 'Introduction', fit: true }">Introduction</Text>
+</Page>
+```
+
+Set `page-mode="useOutlines"` on `<Document>` to open the outline when the file opens.

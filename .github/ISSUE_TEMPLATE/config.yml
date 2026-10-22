@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Layout or rendering bug in react-pdf
+    url: https://github.com/diegomura/react-pdf/issues
+    about: If @react-pdf/renderer shows the same problem, it belongs to the layout engine.
+  - name: Documentation
+    url: https://vue-pdf-document-docs.vercel.app
+    about: Guides, examples and the API reference.

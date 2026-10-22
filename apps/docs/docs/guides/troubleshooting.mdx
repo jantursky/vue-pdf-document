@@ -1,0 +1,49 @@
+---
+title: Troubleshooting
+description: Common errors and what causes them.
+---
+
+## "The root component must render a single &lt;Document&gt;"
+
+The component given to `PdfViewer`, `usePdf` or `renderTo*` has to start with `<Document>`. A wrapper `<div>` or a fragment with siblings around it isn't valid.
+
+## Text disappears and the console says it's "outside &lt;Text&gt;"
+
+Strings only render inside `<Text>`, `<Link>`, `<Note>` and `<Tspan>`. Wrap them.
+
+## A page-number footer disappears, or "unsupported number: …e+21"
+
+This comes from the react-pdf layout engine, not from Vue, and `@react-pdf/renderer` fails the same way. When a `render` element, such as a page-number footer, has a `lineHeight`, whether its own or inherited from `<Page>`, the engine multiplies that line height by the font size again on every layout pass. The footer first grows too tall to draw and silently disappears, even on a one-page document. Once the document passes a few pages, the number exceeds what pdfkit can write and rendering throws.
+
+Until the fix ([react-pdf#3498](https://github.com/diegomura/react-pdf/pull/3498), tracked in [#3416](https://github.com/diegomura/react-pdf/issues/3416)) is released, keep `lineHeight` off `<Page>` and off `render` elements. Set it on a `<View>` around the body instead, which its text inherits:
+
+```vue
+<Page size="A4">
+  <View :style="{ lineHeight: 1.5 }">
+    <Text v-for="paragraph in paragraphs" :key="paragraph.id">{{ paragraph.text }}</Text>
+  </View>
+  <Text fixed :style="footer">
+    <template #render="{ pageNumber, totalPages }">{{ pageNumber }} / {{ totalPages }}</template>
+  </Text>
+</Page>
+```
+
+## The preview stays blank in a headless browser
+
+Headless Chromium has no built-in PDF viewer, so an `<iframe>` showing a PDF triggers a download instead. In end-to-end tests, read the file from the blob URL or wait for the download by file name.
+
+## require() of ES Module
+
+The package is ESM only, like the react-pdf packages it uses. In CommonJS code, load it with `await import('vue-pdf-document')`. Node 22's `require(esm)` support also works.
+
+## Fonts look wrong or a weight is missing
+
+Every family, weight and style used in a style must be registered with `Font.register` before the first render. The standard fonts are the exception. WOFF2 isn't supported; use TTF or WOFF.
+
+## Remote images don't show up in the browser
+
+The image URL must allow cross-origin requests (`Access-Control-Allow-Origin`), because the engine fetches it with `fetch`.
+
+## The document doesn't see my i18n, store or injected values
+
+It runs as a separate Vue app. Pass the values in as props. See [Templates](/guides/templates#limits).

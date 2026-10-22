@@ -1,0 +1,39 @@
+---
+title: Introduction
+description: Write PDF documents as Vue 3 components, laid out by the react-pdf engine.
+---
+
+vue-pdf-document turns Vue components into PDF files. You write `<Document>`, `<Page>`, `<View>` and `<Text>` in a template, with props, `v-for`, `v-if` and computed values, and get a real PDF with text you can select, in the browser or in Node.
+
+The current version is {{version}}. See the [changelog](/changelog) for what each release changed.
+
+<Component path="MinimalExample" />
+
+<Frame caption="The demo app's invoice: a form on the left, the live PDF on the right.">
+  <img src="/screenshots/invoice-light.jpg" alt="An invoice form next to its PDF preview" />
+</Frame>
+
+## How it works
+
+[react-pdf](https://react-pdf.org) is split into packages, and only `@react-pdf/renderer` knows about React. The rest, the layout engine (`@react-pdf/layout`, built on Yoga flexbox), text shaping, pagination and the PDF writer, take a plain tree of nodes. This library builds that tree with Vue's `createRenderer` instead of React's reconciler, then hands it to the same engine:
+
+1. Vue mounts your component with a custom renderer whose nodes have the shape the layout engine reads.
+2. Reactive changes patch that tree like they would patch the DOM.
+3. On render, a copy of the tree goes through `@react-pdf/layout` and `@react-pdf/render`, which draw it with pdfkit.
+
+So layout, styles, fonts and pagination behave exactly as in react-pdf, and its docs on [styling](https://react-pdf.org/styling) and [advanced layout](https://react-pdf.org/advanced) apply as written.
+
+<CardGroup cols={2}>
+  <Card title="Getting started" href="/getting-started" icon="rocket">
+    Install the package and render your first document.
+  </Card>
+  <Card title="Examples" href="/examples" icon="play">
+    A live preview, an invoice built from a form, and a paginated report.
+  </Card>
+  <Card title="Templates" href="/guides/templates" icon="code">
+    How props, flags, styles and page numbers look in a Vue template.
+  </Card>
+  <Card title="Reference" href="/reference/components" icon="book-open">
+    Every component, function and composable.
+  </Card>
+</CardGroup>

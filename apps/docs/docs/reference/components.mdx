@@ -1,0 +1,72 @@
+---
+title: Components
+description: Props and slots of the primitives, PdfViewer and PdfDownloadLink.
+---
+
+## Primitives
+
+Each primitive renders one react-pdf node. Props are passed through to the engine unchanged, so [react-pdf's component docs](https://react-pdf.org/components) describe them in full.
+
+| component                                                                                                                                               | notable props                                                                                                                                                                                  |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Document`                                                                                                                                              | `title`, `author`, `subject`, `keywords`, `creator`, `producer`, `language`, `pageMode`, `pageLayout`, `pdfVersion`, `conformance`, `userPassword`, `ownerPassword`, `permissions`, `onRender` |
+| `Page`                                                                                                                                                  | `size` (`A4` by default; a name, `[width, height]` or `{ width, height }`), `orientation`, `wrap`, `dpi`                                                                                       |
+| `View`                                                                                                                                                  | `wrap`, `render`                                                                                                                                                                               |
+| `Text`                                                                                                                                                  | `wrap`, `widows`, `orphans`, `hyphenationCallback`, `render`                                                                                                                                   |
+| `Link`                                                                                                                                                  | `src`: a URL, or `#id` of an element in the same document                                                                                                                                      |
+| `Image`                                                                                                                                                 | `src`: a URL, data URI, buffer, `{ uri, method, headers, body }` or a function returning one; `cache`                                                                                          |
+| `Note`                                                                                                                                                  | Its text becomes a PDF annotation.                                                                                                                                                             |
+| `Canvas`                                                                                                                                                | `paint(painter, availableWidth, availableHeight)` draws with pdfkit's API.                                                                                                                     |
+| `Svg`, `G`, `Path`, `Rect`, `Line`, `Circle`, `Ellipse`, `Polygon`, `Polyline`, `Tspan`, `Defs`, `Stop`, `ClipPath`, `LinearGradient`, `RadialGradient` | SVG attributes such as `viewBox`, `d`, `fill`, `stroke`.                                                                                                                                       |
+
+Every primitive also accepts:
+
+| prop                 |                                                                      |
+| -------------------- | -------------------------------------------------------------------- |
+| `style`              | An object or an array of objects. See [Styling](/guides/styling).    |
+| `fixed`              | Repeat the element on every page.                                    |
+| `break`              | Start the element on a new page.                                     |
+| `debug`              | Draw the layout boxes.                                               |
+| `bookmark`           | A string or `{ title, fit, expanded }`, added to the PDF outline.    |
+| `min-presence-ahead` | Move the element to the next page unless this many points follow it. |
+| `id`                 | A target for `<Link src="#id">`.                                     |
+
+`Text` and `View` take a `render` slot, called with `{ pageNumber, totalPages }` during pagination. See [Page numbers](/guides/templates#page-numbers).
+
+## PdfViewer
+
+Renders the document into an `<iframe>` and keeps it current.
+
+| prop             | default         |                                                    |
+| ---------------- | --------------- | -------------------------------------------------- |
+| `document`       | required        | A component that renders `<Document>`. Read once.  |
+| `document-props` | `undefined`     | Props for `document`. A change renders again.      |
+| `title`          | `'PDF preview'` | Accessible name of the `<iframe>`.                 |
+| `debounce`       | `100`           | Milliseconds between the last change and a render. |
+
+| slot      | props       |                                        |
+| --------- | ----------- | -------------------------------------- |
+| `loading` |             | Shown until the first render finishes. |
+| `error`   | `{ error }` | Shown when a render fails.             |
+
+It renders `<div data-pdf-viewer>` around `<iframe data-pdf-viewer-frame>`. `data-loading` is set on the wrapper while a render runs. The frame has no size of its own; give it one in CSS:
+
+```css
+[data-pdf-viewer-frame] {
+  width: 100%;
+  height: 80vh;
+  border: 0;
+}
+```
+
+## PdfDownloadLink
+
+Renders `<a download data-pdf-download-link>` pointing at the latest file.
+
+| prop             | default          |                                         |
+| ---------------- | ---------------- | --------------------------------------- |
+| `document`       | required         | A component that renders `<Document>`.  |
+| `document-props` | `undefined`      | Props for `document`.                   |
+| `file-name`      | `'document.pdf'` | The name the browser saves the file as. |
+
+The default slot receives `{ loading, url, blob, error }` and falls back to "Download PDF". Until the first render finishes the link has no `href` and carries `aria-disabled="true"`.

@@ -1,0 +1,25 @@
+name: Size
+
+# Comments on each pull request with how the library's size changes against main,
+# for its own code and with the layout engine (budgets in .size-limit.json).
+on:
+  pull_request:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  size:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+      - uses: andresz1/size-limit-action@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          package_manager: bun
+          directory: packages/vue-pdf-document
+          build_script: build

@@ -1,0 +1,28 @@
+---
+title: Migrating from react-pdf
+description: Map a @react-pdf/renderer document to Vue, piece by piece.
+---
+
+The layout engine is the same, so styles, fonts, page sizes and pagination carry over unchanged. What changes is how the tree is written.
+
+| react-pdf                                    | vue-pdf-document                                                    |
+| -------------------------------------------- | ------------------------------------------------------------------- |
+| `<View style={styles.row}>`                  | `<View :style="styles.row">`                                        |
+| `<View style={[a, b]}>`                      | `<View :style="[a, b]">`                                            |
+| `<View fixed>` / `wrap={false}`              | `<View fixed>` / `:wrap="false"`                                    |
+| `minPresenceAhead={40}`                      | `:min-presence-ahead="40"`                                          |
+| `{items.map((item) => <Row key={…} />)}`     | `<Row v-for="item in items" :key="…" />`                            |
+| `{paid && <Stamp />}`                        | `<Stamp v-if="paid" />`                                             |
+| `render={({ pageNumber }) => …}`             | `<template #render="{ pageNumber }">…</template>`, or the same prop |
+| `<PDFViewer><Doc /></PDFViewer>`             | `<PdfViewer :document="Doc" :document-props="…" />`                 |
+| `<PDFDownloadLink document={<Doc />}>`       | `<PdfDownloadLink :document="Doc" :document-props="…" />`           |
+| `usePDF({ document })`                       | `usePdf(Doc, props)`                                                |
+| `pdf(<Doc />).toBlob()`                      | `pdf(Doc, props).toBlob()` or `renderToBlob(Doc, props)`            |
+| `renderToBuffer(<Doc />)` / `renderToStream` | `renderToBuffer(Doc, props)`, resolving to a `Uint8Array`           |
+| `renderToFile(<Doc />, path)`                | `writeFile(path, await renderToBuffer(Doc, props))`                 |
+| `Font`, `StyleSheet`                         | The same.                                                           |
+
+Two differences matter in practice:
+
+- Documents are passed as a component plus props, not as an element. The viewer re-renders when those props, or any reactive state the document reads, change. There's no need to memoize the document.
+- The document runs as its own Vue app. It doesn't inherit `provide`/`inject`, plugins (i18n, Pinia) or global components from the page. Pass translated strings and store data in as props.

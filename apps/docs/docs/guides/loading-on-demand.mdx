@@ -1,0 +1,50 @@
+---
+title: Loading on demand
+description: Keep the layout engine out of the initial bundle and load it when a PDF is needed.
+---
+
+The engine behind the components, Yoga, fontkit and pdfkit, adds about 370 kB gzipped to a browser bundle. The library's own code is about 3 kB. If only one screen makes PDFs, load all of it there.
+
+## A route
+
+With vue-router, a lazily loaded route already splits the bundle:
+
+```ts
+const routes = [{ path: '/invoices/:id', component: () => import('./pages/InvoicePage.vue') }]
+```
+
+## A button
+
+Import the library and the document inside the handler:
+
+```ts
+const download = async () => {
+  const [{ renderToBlob }, { default: InvoiceDocument }] = await Promise.all([
+    import('vue-pdf-document'),
+    import('./InvoiceDocument.vue'),
+  ])
+  const blob = await renderToBlob(InvoiceDocument, invoice)
+  const link = document.createElement('a')
+  link.href = URL.createObjectURL(blob)
+  link.download = 'invoice.pdf'
+  link.click()
+  // A slow download may still be reading the blob, so revoke the URL well after the click.
+  setTimeout(() => URL.revokeObjectURL(link.href), 40_000)
+}
+```
+
+The demo app's _On demand_ section does exactly this.
+
+## A component
+
+`defineAsyncComponent` loads the viewer, and the engine with it, the first time it renders:
+
+```ts
+import { defineAsyncComponent } from 'vue'
+
+const PdfViewer = defineAsyncComponent(() => import('vue-pdf-document').then((module) => module.PdfViewer))
+```
+
+## In a worker
+
+`renderToBuffer()` needs no DOM, so it also runs in a Web Worker and keeps a long layout off the main thread. Post the props in, and the bytes back as a transferable.

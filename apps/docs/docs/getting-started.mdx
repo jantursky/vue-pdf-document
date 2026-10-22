@@ -1,0 +1,78 @@
+---
+title: Getting started
+description: Install vue-pdf-document, write a document component and show or save it.
+sidebar:
+  order: 2
+---
+
+## Install
+
+```package-install
+vue-pdf-document
+```
+
+It needs Vue `^3.5`. The package is ESM only, as are the react-pdf packages it builds on. The layout engine, fontkit and pdfkit add about 370 kB gzipped to a browser bundle, so load the page that makes PDFs lazily if that matters to you.
+
+## Write a document
+
+A document is an ordinary component whose template starts with `<Document>`:
+
+```vue InvoiceDocument.vue
+<script setup lang="ts">
+import { Document, Page, StyleSheet, Text, View } from 'vue-pdf-document'
+
+defineProps<{ customer: string; total: number }>()
+
+const styles = StyleSheet.create({
+  page: { padding: 40, fontSize: 12 },
+  row: { flexDirection: 'row', justifyContent: 'space-between' },
+})
+</script>
+
+<template>
+  <Document title="Invoice">
+    <Page size="A4" :style="styles.page">
+      <View :style="styles.row">
+        <Text>Bill to {{ customer }}</Text>
+        <Text>Total €{{ total.toFixed(2) }}</Text>
+      </View>
+    </Page>
+  </Document>
+</template>
+```
+
+## Show it in the page
+
+`<PdfViewer>` renders the document into an `<iframe>` and renders again when `document-props` change:
+
+```vue App.vue
+<script setup lang="ts">
+import { ref } from 'vue'
+import { PdfViewer, PdfDownloadLink } from 'vue-pdf-document'
+
+import InvoiceDocument from './InvoiceDocument.vue'
+
+const customer = ref('Ada')
+</script>
+
+<template>
+  <input v-model="customer" />
+  <PdfViewer :document="InvoiceDocument" :document-props="{ customer, total: 42 }" style="height: 600px" />
+  <PdfDownloadLink :document="InvoiceDocument" :document-props="{ customer, total: 42 }" file-name="invoice.pdf" />
+</template>
+```
+
+For your own markup, `usePdf()` gives you the `blob`, `url`, `loading` and `error` refs instead. See the [reference](/reference/composable).
+
+## Render once
+
+In a click handler, a worker or on a server, render to a `Blob` or to bytes:
+
+```ts
+import { renderToBlob, renderToBuffer } from 'vue-pdf-document'
+
+const blob = await renderToBlob(InvoiceDocument, { customer: 'Ada', total: 42 })
+const bytes = await renderToBuffer(InvoiceDocument, { customer: 'Ada', total: 42 }) // Uint8Array
+```
+
+[Server-side rendering](/guides/server) shows a Node endpoint.

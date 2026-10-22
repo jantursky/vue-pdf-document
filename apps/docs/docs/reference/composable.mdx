@@ -1,0 +1,32 @@
+---
+title: Composable
+description: Options and return values of usePdf.
+---
+
+## usePdf(document, props?, options?)
+
+```ts
+import { usePdf } from 'vue-pdf-document'
+
+const { blob, url, loading, error, update } = usePdf(InvoiceDocument, () => ({ customer: customer.value }), {
+  debounce: 100,
+})
+```
+
+Mounts `document` with the PDF renderer, renders it, and renders again whenever reactive state it reads changes. Call it in `setup()` or inside an `effectScope`. In a component the first render waits for `onMounted`, so server-side rendering never starts the engine.
+
+| argument   | type                              |                                                       |
+| ---------- | --------------------------------- | ----------------------------------------------------- |
+| `document` | `Component`                       | Renders `<Document>`.                                 |
+| `props`    | value, ref or getter of an object | Props for `document`, read reactively.                |
+| `options`  | `{ debounce?: number }`           | Milliseconds after the last change. `100` by default. |
+
+| returns   | type                            |                                                                                                                                                                |
+| --------- | ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `blob`    | `Readonly<Ref<Blob \| null>>`   | The latest file.                                                                                                                                               |
+| `url`     | `Readonly<Ref<string \| null>>` | An object URL for `blob`. A replaced URL is revoked 10 s later, so a download or frame still reading it finishes; the last one is revoked when the scope ends. |
+| `loading` | `Readonly<Ref<boolean>>`        | `true` while a render runs, and before the first one.                                                                                                          |
+| `error`   | `Readonly<Ref<unknown>>`        | The last render's error, cleared by the next success.                                                                                                          |
+| `update`  | `() => Promise<void>`           | Render now, without waiting for a change.                                                                                                                      |
+
+When renders overlap, only the newest one's result is kept.

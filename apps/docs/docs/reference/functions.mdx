@@ -1,0 +1,47 @@
+---
+title: Functions
+description: pdf, renderToBlob, renderToBuffer, Font and StyleSheet.
+---
+
+## renderToBlob(document, props?)
+
+Mounts the document, renders it once and unmounts it. Resolves to a `Blob` of type `application/pdf`.
+
+## renderToBuffer(document, props?)
+
+The same, resolving to a `Uint8Array`. It needs no DOM, so it works in Node, workers and edge runtimes. See [Server-side rendering](/guides/server).
+
+## pdf(document, props?)
+
+The handle the other functions and `usePdf` are built on. The Vue app stays mounted until `unmount()`, so each render reflects the current props.
+
+```ts
+const instance = pdf(InvoiceDocument, () => ({ customer: customer.value }))
+
+const blob = await instance.toBlob()
+const bytes = await instance.toBuffer()
+const stop = instance.onChange(() => console.log('the tree changed'))
+stop()
+instance.unmount()
+```
+
+| member         |                                                                       |
+| -------------- | --------------------------------------------------------------------- |
+| `toBlob()`     | Lays out and renders the current tree. Calls `Document`'s `onRender`. |
+| `toBuffer()`   | The same, as bytes.                                                   |
+| `onChange(fn)` | Calls `fn` after Vue patches the tree. Returns a function that stops. |
+| `unmount()`    | Unmounts the app. Later renders reject.                               |
+
+The root component must render a single `<Document>`; otherwise a render rejects with an error saying so.
+
+## Font
+
+react-pdf's font store, created on first use. `register`, `registerEmojiSource`, `registerHyphenationCallback`, `getRegisteredFontFamilies` and the rest behave as in [react-pdf](https://react-pdf.org/fonts). See [Fonts](/guides/fonts).
+
+## StyleSheet.create(styles)
+
+Returns `styles` unchanged. Its type keeps values such as `flexDirection: 'row'` narrow, so they type-check against the style props.
+
+## Types
+
+`DocumentProps`, `PageProps`, `ViewProps`, `TextProps`, `LinkProps`, `ImageProps`, `SvgProps`, `BaseProps`, `Style`, `PdfStyle`, `PageSize`, `Orientation`, `SourceObject`, `DynamicProps`, `PdfInstance`, `UsePdfOptions`, `UsePdfReturn`.
