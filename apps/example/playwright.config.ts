@@ -2,8 +2,6 @@ import { defineConfig, devices } from '@playwright/test'
 
 const port = 4179
 
-// End-to-end tests of the built demo app, the way it ships to Vercel: real bundling of
-// the library's dist, pdfkit's browser build, object URLs and downloads.
 export default defineConfig({
   testDir: 'e2e',
   fullyParallel: true,

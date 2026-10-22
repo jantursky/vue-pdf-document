@@ -1,4 +1,3 @@
-# Coverage comes from the library's unit tests; the demo and docs aren't measured.
 coverage:
   status:
     project:

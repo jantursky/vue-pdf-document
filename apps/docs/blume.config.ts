@@ -30,7 +30,6 @@ export default defineConfig({
     accent: 'teal',
     mode: 'system',
   },
-  // Read from the library's package.json, so `{{version}}` in a page is always the current one.
   variables: {
     version: pkg.version,
   },

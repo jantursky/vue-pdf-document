@@ -8,7 +8,6 @@ import dts from 'vite-plugin-dts'
 const root = (path: string): string => resolve(import.meta.dirname, path)
 
 const pkg = JSON.parse(readFileSync(root('package.json'), 'utf8')) as { dependencies: Record<string, string> }
-// Size budgets live in .size-limit.json and run after every build (`bun run size`).
 const external = ['vue', ...Object.keys(pkg.dependencies)]
 
 export default defineConfig({
@@ -28,7 +27,6 @@ export default defineConfig({
       fileName: () => 'index.js',
     },
     rollupOptions: {
-      // Subpaths too, such as `@react-pdf/fns` internals or `vue/...`.
       external: (id) => external.some((name) => id === name || id.startsWith(`${name}/`)),
     },
     sourcemap: true,

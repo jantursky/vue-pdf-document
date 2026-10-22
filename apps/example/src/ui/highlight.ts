@@ -17,6 +17,5 @@ const languageOf = (fileName: string) => {
   return 'xml'
 }
 
-/** Returns escaped HTML with highlight.js token spans. */
 export const highlight = (code: string, fileName: string): string =>
   hljs.highlight(code, { language: languageOf(fileName), ignoreIllegals: true }).value
