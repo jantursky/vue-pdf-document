@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { defineComponent, effectScope, h } from 'vue'
 
-import { Document, Page, renderToBlob, Text, usePdf, View } from '../../src'
+import { Document, Page, renderToBlob, renderToStream, Text, usePdf, View } from '../../src'
 
 const Doc = defineComponent(
   () => () =>
@@ -33,5 +33,15 @@ describe('in a real browser', () => {
     const response = await fetch(url.value!)
     expect(await header(await response.blob())).toBe('%PDF-')
     scope.stop()
+  })
+
+  it('streams a document in chunks that join into a PDF', async () => {
+    const reader = renderToStream(Doc).getReader()
+    const chunks: Uint8Array[] = []
+    for (let next = await reader.read(); !next.done; next = await reader.read()) chunks.push(next.value)
+    expect(chunks.length).toBeGreaterThan(1)
+    const blob = new Blob(chunks as BlobPart[], { type: 'application/pdf' })
+    expect(await header(blob)).toBe('%PDF-')
+    expect(new TextDecoder().decode(await blob.slice(-6).arrayBuffer())).toContain('%%EOF')
   })
 })

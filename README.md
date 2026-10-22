@@ -54,7 +54,7 @@ Checked on 2026-10-22, before starting:
 | [`vue-pdf`](https://www.npmjs.com/package/vue-pdf)              | pdf.js viewer, not a generator                   | Unmaintained since 2022, Vue 2.                                                                                                                                                                                     |
 | [`@react-pdf/renderer`](https://github.com/diegomura/react-pdf) | The upstream engine                              | Very active: 4.9.0 (August 2026), commits this week, about 25 million downloads a month.                                                                                                                            |
 
-This library tracks the current upstream packages (`@react-pdf/layout` 5.x, pdfkit 0.20) without patches, ships one ESM entry for browsers, workers and Node, and keeps its own code at about 3 kB gzipped.
+This library tracks the current upstream packages (`@react-pdf/layout` 5.x, pdfkit 0.20) without patches, ships one ESM entry for browsers, workers and Node, and keeps its own code at about 4 kB gzipped.
 
 ## Requirements
 

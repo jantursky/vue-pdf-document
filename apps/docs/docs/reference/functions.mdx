@@ -1,15 +1,32 @@
 ---
 title: Functions
-description: pdf, renderToBlob, renderToBuffer, Font and StyleSheet.
+description: pdf, renderToBlob, renderToBuffer, renderToStream, PdfRenderError, Font and StyleSheet.
 ---
 
-## renderToBlob(document, props?)
+## renderToBlob(document, props?, options?)
 
 Mounts the document, renders it once and unmounts it. Resolves to a `Blob` of type `application/pdf`.
 
-## renderToBuffer(document, props?)
+## renderToBuffer(document, props?, options?)
 
 The same, resolving to a `Uint8Array`. It needs no DOM, so it works in Node, workers and edge runtimes. See [Server-side rendering](/guides/server).
+
+## renderToStream(document, props?, options?)
+
+The same, as a web `ReadableStream<Uint8Array>` that emits the file in chunks as it's written. The document is unmounted when the stream closes, fails or is cancelled. In Node, `Readable.fromWeb()` turns it into a Node stream.
+
+## Options
+
+Every render function and method takes `{ signal }`, an `AbortSignal`:
+
+```ts
+const controller = new AbortController()
+const pending = renderToBlob(ReportDocument, { sections }, { signal: controller.signal })
+
+controller.abort() // pending rejects with a DOMException named 'AbortError'
+```
+
+The engine checks the signal between its steps (building the layout input, laying it out, writing the PDF). Layout itself can't be interrupted, so images and fonts it already started loading still load, but the result is thrown away and `onRender` isn't called. The instance stays usable for the next render.
 
 ## pdf(document, props?)
 
@@ -20,19 +37,42 @@ const instance = pdf(InvoiceDocument, () => ({ customer: customer.value }))
 
 const blob = await instance.toBlob()
 const bytes = await instance.toBuffer()
+const stream = instance.toStream()
+console.log(instance.pageCount) // pages of the last finished render
 const stop = instance.onChange(() => console.log('the tree changed'))
 stop()
 instance.unmount()
 ```
 
-| member         |                                                                       |
-| -------------- | --------------------------------------------------------------------- |
-| `toBlob()`     | Lays out and renders the current tree. Calls `Document`'s `onRender`. |
-| `toBuffer()`   | The same, as bytes.                                                   |
-| `onChange(fn)` | Calls `fn` after Vue patches the tree. Returns a function that stops. |
-| `unmount()`    | Unmounts the app. Later renders reject.                               |
+| member               |                                                                                                      |
+| -------------------- | ---------------------------------------------------------------------------------------------------- |
+| `toBlob(options?)`   | Lays out and renders the current tree. Calls `Document`'s `onRender` with `{ blob, pageCount }`.     |
+| `toBuffer(options?)` | The same, as bytes.                                                                                  |
+| `toStream(options?)` | The same, as a `ReadableStream<Uint8Array>`. Cancelling the stream aborts the render.                |
+| `pageCount`          | Pages of the last finished render, `null` before the first one. An aborted render doesn't change it. |
+| `onChange(fn)`       | Calls `fn` after Vue patches the tree. Returns a function that stops.                                |
+| `unmount()`          | Unmounts the app. Later renders reject.                                                              |
 
-The root component must render a single `<Document>`; otherwise a render rejects with an error saying so.
+## PdfRenderError
+
+A failed render rejects with a `PdfRenderError`. Its `phase` says which step failed, and `cause` holds the original error:
+
+| `phase`    | typical cause                                                                           |
+| ---------- | --------------------------------------------------------------------------------------- |
+| `snapshot` | The root component doesn't render a single `<Document>`, or the document was unmounted. |
+| `layout`   | A `fontFamily` that was never registered.                                               |
+| `render`   | pdfkit failed to write the file.                                                        |
+
+```ts
+try {
+  await renderToBuffer(InvoiceDocument, props)
+} catch (error) {
+  if (error instanceof PdfRenderError && error.phase === 'layout') console.error('Check the fonts', error.cause)
+  else throw error
+}
+```
+
+The message starts with `[vue-pdf-document]` and repeats the original one. An aborted render rejects with the `AbortError`, unwrapped. Images that fail to load don't fail the render; layout warns and leaves them out.
 
 ## Font
 
@@ -44,4 +84,4 @@ Returns `styles` unchanged. Its type keeps values such as `flexDirection: 'row'`
 
 ## Types
 
-`DocumentProps`, `PageProps`, `ViewProps`, `TextProps`, `LinkProps`, `ImageProps`, `SvgProps`, `BaseProps`, `Style`, `PdfStyle`, `PageSize`, `Orientation`, `SourceObject`, `DynamicProps`, `PdfInstance`, `UsePdfOptions`, `UsePdfReturn`.
+`DocumentProps`, `PageProps`, `ViewProps`, `TextProps`, `LinkProps`, `ImageProps`, `SvgProps`, `BaseProps`, `Style`, `PdfStyle`, `PageSize`, `Orientation`, `SourceObject`, `DynamicProps`, `PdfInstance`, `RenderOptions`, `RenderInfo`, `RenderPhase`, `UsePdfOptions`, `UsePdfReturn`.

@@ -8,25 +8,43 @@ description: Options and return values of usePdf.
 ```ts
 import { usePdf } from 'vue-pdf-document'
 
-const { blob, url, loading, error, update } = usePdf(InvoiceDocument, () => ({ customer: customer.value }), {
+const { blob, url, loading, error, pageCount, update } = usePdf(InvoiceDocument, () => ({ customer: customer.value }), {
   debounce: 100,
+  enabled: () => previewOpen.value,
 })
 ```
 
 Mounts `document` with the PDF renderer, renders it, and renders again whenever reactive state it reads changes. Call it in `setup()` or inside an `effectScope`. In a component the first render waits for `onMounted`, so server-side rendering never starts the engine.
 
-| argument   | type                              |                                                       |
-| ---------- | --------------------------------- | ----------------------------------------------------- |
-| `document` | `Component`                       | Renders `<Document>`.                                 |
-| `props`    | value, ref or getter of an object | Props for `document`, read reactively.                |
-| `options`  | `{ debounce?: number }`           | Milliseconds after the last change. `100` by default. |
+| argument   | type                              |                                        |
+| ---------- | --------------------------------- | -------------------------------------- |
+| `document` | `Component`                       | Renders `<Document>`.                  |
+| `props`    | value, ref or getter of an object | Props for `document`, read reactively. |
+| `options`  | `UsePdfOptions`                   | See below.                             |
 
-| returns   | type                            |                                                                                                                                                                |
-| --------- | ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `blob`    | `Readonly<Ref<Blob \| null>>`   | The latest file.                                                                                                                                               |
-| `url`     | `Readonly<Ref<string \| null>>` | An object URL for `blob`. A replaced URL is revoked 10 s later, so a download or frame still reading it finishes; the last one is revoked when the scope ends. |
-| `loading` | `Readonly<Ref<boolean>>`        | `true` while a render runs, and before the first one.                                                                                                          |
-| `error`   | `Readonly<Ref<unknown>>`        | The last render's error, cleared by the next success.                                                                                                          |
-| `update`  | `() => Promise<void>`           | Render now, without waiting for a change.                                                                                                                      |
+| option     | type                                 |                                                                                                                    |
+| ---------- | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------ |
+| `debounce` | `number`                             | Milliseconds to wait after the last change. `100` by default.                                                      |
+| `enabled`  | `boolean`, or a ref or getter of one | While `false`, nothing renders and a pending render is dropped. Turning it `true` renders once. `true` by default. |
 
-When renders overlap, only the newest one's result is kept.
+| returns     | type                            |                                                                                                                                                                |
+| ----------- | ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `blob`      | `Readonly<Ref<Blob \| null>>`   | The latest file.                                                                                                                                               |
+| `url`       | `Readonly<Ref<string \| null>>` | An object URL for `blob`. A replaced URL is revoked 10 s later, so a download or frame still reading it finishes; the last one is revoked when the scope ends. |
+| `loading`   | `Readonly<Ref<boolean>>`        | `true` while a render runs, and before the first one. Always `false` while disabled.                                                                           |
+| `error`     | `Readonly<Ref<unknown>>`        | The last render's error, cleared by the next success.                                                                                                          |
+| `pageCount` | `Readonly<Ref<number \| null>>` | Pages of the file in `blob`, `null` before the first render finishes.                                                                                          |
+| `update`    | `() => Promise<void>`           | Render now, without waiting for a change. Does nothing while disabled.                                                                                         |
+
+When a render starts while an earlier one is still running, the earlier one is aborted and its result dropped. An aborted render doesn't set `error`.
+
+## Rendering only when needed
+
+A preview in a closed dialog or a collapsed panel doesn't have to render. Tie `enabled` to whatever shows it:
+
+```ts
+const open = ref(false)
+const { url } = usePdf(ReportDocument, () => ({ sections: sections.value }), { enabled: open })
+```
+
+Edits made while the dialog is closed don't render; opening it renders once, with the current data.

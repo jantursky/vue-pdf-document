@@ -1,7 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent, effectScope, h, nextTick, ref } from 'vue'
 
-import { Document, Page, Text, usePdf } from '../../src'
+import { Document, Image, Page, Text, usePdf } from '../../src'
+import Invoice from '../fixtures/Invoice.vue'
 import { singlePage } from '../fixtures'
 
 const scopes: (() => void)[] = []
@@ -113,5 +114,73 @@ describe('usePdf', () => {
     stop()
     expect(revoke).toHaveBeenCalledWith(url)
     expect(result.url.value).toBeNull()
+  })
+
+  it('does not render while disabled', async () => {
+    const enabled = ref(false)
+    const label = ref('a')
+    const { result } = setup(
+      singlePage(() => h(Text, null, () => label.value)),
+      undefined,
+      { debounce: 0, enabled },
+    )
+    expect(result.loading.value).toBe(false)
+    await result.update()
+    label.value = 'b'
+    await new Promise((resolve) => setTimeout(resolve, 20))
+    expect(result.blob.value).toBeNull()
+    expect(result.loading.value).toBe(false)
+
+    enabled.value = true
+    await until(() => result.blob.value !== null)
+    expect(result.blob.value?.type).toBe('application/pdf')
+    expect(result.pageCount.value).toBe(1)
+  })
+
+  it('drops the pending render when disabled', async () => {
+    const enabled = ref(true)
+    const label = ref('a')
+    const { result } = setup(
+      singlePage(() => h(Text, null, () => label.value)),
+      undefined,
+      { debounce: 30, enabled },
+    )
+    await until(() => result.blob.value !== null)
+    const first = result.blob.value
+    label.value = 'b'
+    await nextTick()
+    enabled.value = false
+    await new Promise((resolve) => setTimeout(resolve, 60))
+    expect(result.blob.value).toBe(first)
+    expect(result.loading.value).toBe(false)
+  })
+
+  it('aborts a render that a newer one overtakes, without an error', async () => {
+    let release = () => {}
+    let held = true
+    const uri =
+      'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx0gAAAABJRU5ErkJggg=='
+    const src = () => (held ? new Promise<string>((resolve) => (release = () => resolve(uri))) : Promise.resolve(uri))
+    const { result } = setup(singlePage(() => h(Image, { src, cache: false, style: { width: 10, height: 10 } })))
+    const first = result.update()
+    held = false
+    await result.update()
+    await first
+    release()
+    expect(result.error.value).toBeNull()
+    expect(result.blob.value?.type).toBe('application/pdf')
+    expect(result.loading.value).toBe(false)
+  })
+
+  it('follows the page count', async () => {
+    const count = ref(2)
+    const items = () => Array.from({ length: count.value }, (_, i) => ({ name: `Item ${i}`, price: i }))
+    const { result } = setup(Invoice, () => ({ customer: 'Ada', items: items() }), { debounce: 0 })
+    expect(result.pageCount.value).toBeNull()
+    await until(() => result.pageCount.value === 1)
+    const first = result.blob.value
+    count.value = 80
+    await until(() => result.pageCount.value === 2)
+    expect(result.blob.value).not.toBe(first)
   })
 })

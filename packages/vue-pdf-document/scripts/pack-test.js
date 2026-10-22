@@ -23,13 +23,20 @@ try {
   writeFileSync(
     join(dir, 'consumer.js'),
     `import { h } from 'vue'
-import { Document, Page, Text, renderToBuffer } from 'vue-pdf-document'
+import { Readable } from 'node:stream'
+import { Document, Page, Text, renderToBuffer, renderToStream } from 'vue-pdf-document'
 
 const Hello = { render: () => h(Document, { title: 'Pack test' }, () => h(Page, () => h(Text, () => 'Hello'))) }
 const bytes = await renderToBuffer(Hello)
 const header = new TextDecoder().decode(bytes.subarray(0, 5))
 if (header !== '%PDF-') throw new Error('Not a PDF: ' + header)
 console.log('rendered ' + bytes.length + ' bytes from the installed package')
+
+const streamed = []
+for await (const chunk of Readable.fromWeb(renderToStream(Hello))) streamed.push(chunk)
+const joined = Buffer.concat(streamed)
+if (joined.subarray(0, 5).toString() !== '%PDF-') throw new Error('Streamed output is not a PDF')
+console.log('streamed ' + joined.length + ' bytes in ' + streamed.length + ' chunks')
 `,
   )
   console.log(run('node', ['consumer.js'], dir).trim())

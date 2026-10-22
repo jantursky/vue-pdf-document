@@ -26,7 +26,18 @@ export {
 export { default as PdfViewer } from './components/PdfViewer.vue'
 export { default as PdfDownloadLink } from './components/PdfDownloadLink.vue'
 export { usePdf, type UsePdfOptions, type UsePdfReturn } from './composables/usePdf'
-export { Font, pdf, renderToBlob, renderToBuffer, StyleSheet, type PdfInstance } from './core/pdf'
+export {
+  Font,
+  pdf,
+  PdfRenderError,
+  renderToBlob,
+  renderToBuffer,
+  renderToStream,
+  StyleSheet,
+  type PdfInstance,
+  type RenderOptions,
+  type RenderPhase,
+} from './core/pdf'
 export type {
   BaseProps,
   DocumentProps,
@@ -37,6 +48,7 @@ export type {
   PageProps,
   PageSize,
   PdfStyle,
+  RenderInfo,
   SourceObject,
   Style,
   SvgProps,

@@ -3,7 +3,7 @@ title: Loading on demand
 description: Keep the layout engine out of the initial bundle and load it when a PDF is needed.
 ---
 
-The engine behind the components, Yoga, fontkit and pdfkit, adds about 370 kB gzipped to a browser bundle. The library's own code is about 3 kB. If only one screen makes PDFs, load all of it there.
+The engine behind the components, Yoga, fontkit and pdfkit, adds about 370 kB gzipped to a browser bundle. The library's own code is about 4 kB. If only one screen makes PDFs, load all of it there.
 
 ## A route
 
@@ -34,6 +34,23 @@ const download = async () => {
 ```
 
 The demo app's _On demand_ section does exactly this.
+
+## A download link that renders when needed
+
+A page with many download links, one per invoice in a list, doesn't have to render every file up front. `lazy` waits until a link is hovered, focused or clicked:
+
+```vue
+<PdfDownloadLink
+  v-for="invoice in invoices"
+  :key="invoice.id"
+  lazy
+  :document="InvoiceDocument"
+  :document-props="invoice"
+  :file-name="`invoice-${invoice.id}.pdf`"
+/>
+```
+
+Hovering usually gives the render a head start, so the file is often ready by the time the click lands. If it isn't, the click is held and the download starts when the file is done.
 
 ## A component
 

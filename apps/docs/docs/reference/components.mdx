@@ -37,17 +37,28 @@ Every primitive also accepts:
 
 Renders the document into an `<iframe>` and keeps it current.
 
-| prop             | default         |                                                    |
-| ---------------- | --------------- | -------------------------------------------------- |
-| `document`       | required        | A component that renders `<Document>`. Read once.  |
-| `document-props` | `undefined`     | Props for `document`. A change renders again.      |
-| `title`          | `'PDF preview'` | Accessible name of the `<iframe>`.                 |
-| `debounce`       | `100`           | Milliseconds between the last change and a render. |
+| prop             | default         |                                                                 |
+| ---------------- | --------------- | --------------------------------------------------------------- |
+| `document`       | required        | A component that renders `<Document>`. Read once.               |
+| `document-props` | `undefined`     | Props for `document`. A change renders again.                   |
+| `title`          | `'PDF preview'` | Accessible name of the `<iframe>`.                              |
+| `debounce`       | `100`           | Milliseconds between the last change and a render.              |
+| `enabled`        | `true`          | While `false`, nothing renders. Turning it `true` renders once. |
+| `page`           | `undefined`     | The page the browser's viewer opens at.                         |
+| `zoom`           | `undefined`     | Zoom in percent, or `'page-fit'` / `'page-width'`.              |
+| `toolbar`        | `undefined`     | `false` hides the browser's viewer toolbar, `true` shows it.    |
+
+`page`, `zoom` and `toolbar` are appended to the frame's URL as PDF open parameters (`#page=3&zoom=100&toolbar=0`). They're hints to the browser's own viewer: Chromium and Firefox read all three, Safari ignores `toolbar` and the fit modes. Without them the URL has no fragment.
 
 | slot      | props       |                                        |
 | --------- | ----------- | -------------------------------------- |
 | `loading` |             | Shown until the first render finishes. |
 | `error`   | `{ error }` | Shown when a render fails.             |
+
+| event      | payload                    |                              |
+| ---------- | -------------------------- | ---------------------------- |
+| `rendered` | `{ blob, url, pageCount }` | After every finished render. |
+| `error`    | `error`                    | After every failed render.   |
 
 It renders `<div data-pdf-viewer>` around `<iframe data-pdf-viewer-frame>`. `data-loading` is set on the wrapper while a render runs. The frame has no size of its own; give it one in CSS:
 
@@ -63,10 +74,16 @@ It renders `<div data-pdf-viewer>` around `<iframe data-pdf-viewer-frame>`. `dat
 
 Renders `<a download data-pdf-download-link>` pointing at the latest file.
 
-| prop             | default          |                                         |
-| ---------------- | ---------------- | --------------------------------------- |
-| `document`       | required         | A component that renders `<Document>`.  |
-| `document-props` | `undefined`      | Props for `document`.                   |
-| `file-name`      | `'document.pdf'` | The name the browser saves the file as. |
+| prop             | default          |                                                           |
+| ---------------- | ---------------- | --------------------------------------------------------- |
+| `document`       | required         | A component that renders `<Document>`.                    |
+| `document-props` | `undefined`      | Props for `document`.                                     |
+| `file-name`      | `'document.pdf'` | The name the browser saves the file as.                   |
+| `enabled`        | `true`           | While `false`, nothing renders.                           |
+| `lazy`           | `false`          | Render only once the link is hovered, focused or clicked. |
 
 The default slot receives `{ loading, url, blob, error }` and falls back to "Download PDF". Until the first render finishes the link has no `href` and carries `aria-disabled="true"`.
+
+A `lazy` link doesn't render until someone reaches for it. A click before the file is ready is held: the link sets `aria-busy="true"`, and the download starts by itself, under `file-name`, once the render finishes. A lazy link never carries `aria-disabled`, since it works before it has a file; until it has one it keeps `tabindex="0"` and `role="link"`, so it can be focused and triggered with Enter.
+
+It emits the same `rendered` and `error` events as `PdfViewer`.

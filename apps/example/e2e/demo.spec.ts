@@ -84,3 +84,30 @@ test('renders on demand and downloads the file', async ({ page }) => {
   expect(bytes.subarray(0, 5).toString('latin1')).toBe('%PDF-')
   await expect(demo.locator('[data-result]')).toHaveText(/^report\.pdf, .* kB in \d+ ms$/)
 })
+
+test('shows the page count of the report', async ({ page }) => {
+  const example = page.locator('#example-report')
+  await expect(example.locator('[data-page-count]')).toHaveText(/^\d+ pages$/)
+  const few = Number((await example.locator('[data-page-count]').textContent())?.split(' ')[0])
+  await example.getByRole('slider').fill('60')
+  await expect
+    .poll(async () => Number((await example.locator('[data-page-count]').textContent())?.split(' ')[0]))
+    .toBeGreaterThan(few)
+})
+
+test('lazy link renders only when touched and holds an early click', async ({ page }) => {
+  const demo = page.locator('#demo-on-demand')
+  const link = demo.locator('[data-lazy-link]')
+  await expect(link).not.toHaveAttribute('aria-disabled', /.*/)
+  await page.waitForTimeout(500)
+  await expect(link).not.toHaveAttribute('href', /.+/)
+  await expect(demo.locator('[data-lazy-result]')).toHaveText('Nothing rendered yet.')
+
+  // The click arrives before the file exists; the download starts once it does.
+  const [download] = await Promise.all([waitForDownload(page, 'short-report.pdf'), link.click()])
+  const bytes = await readFile(await download.path())
+  expect(bytes.subarray(0, 5).toString('latin1')).toBe('%PDF-')
+  await expect(demo.locator('[data-lazy-result]')).toHaveText(/^Rendered \d+ pages on first touch\.$/)
+  await expect(link).toHaveAttribute('href', /^blob:/)
+  await expect(link).not.toHaveAttribute('aria-busy', 'true')
+})

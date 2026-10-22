@@ -5,12 +5,18 @@ import type { Ref } from 'vue'
 
 import {
   pdf,
+  PdfRenderError,
   renderToBlob,
   renderToBuffer,
+  renderToStream,
   StyleSheet,
   usePdf,
+  type DocumentProps,
   type Page,
   type PdfInstance,
+  type RenderInfo,
+  type RenderOptions,
+  type RenderPhase,
   type Text,
   type Style,
   type UsePdfReturn,
@@ -43,6 +49,30 @@ describe('public types', () => {
     expectTypeOf(pdf).returns.toEqualTypeOf<PdfInstance>()
     expectTypeOf(usePdf).returns.toEqualTypeOf<UsePdfReturn>()
     expectTypeOf<UsePdfReturn['url']>().toEqualTypeOf<Readonly<Ref<string | null>>>()
+    expectTypeOf<UsePdfReturn['pageCount']>().toEqualTypeOf<Readonly<Ref<number | null>>>()
+    expectTypeOf(usePdf).toBeCallableWith(Invoice, undefined, { enabled: () => true, debounce: 50 })
     expectTypeOf(renderToBuffer).toBeCallableWith(Invoice, { customer: 'Ada', items: [] })
+  })
+
+  it('types render options, results and errors', () => {
+    expectTypeOf<RenderOptions>().toEqualTypeOf<{ signal?: AbortSignal }>()
+    expectTypeOf<RenderInfo>().toEqualTypeOf<{ blob: Blob; pageCount: number }>()
+    expectTypeOf<NonNullable<DocumentProps['onRender']>>().parameter(0).toEqualTypeOf<RenderInfo>()
+    expectTypeOf<PdfInstance['pageCount']>().toEqualTypeOf<number | null>()
+    expectTypeOf<PdfInstance['toStream']>().returns.toEqualTypeOf<ReadableStream<Uint8Array>>()
+    expectTypeOf(renderToStream).returns.toEqualTypeOf<ReadableStream<Uint8Array>>()
+    expectTypeOf(renderToBuffer).toBeCallableWith(Invoice, undefined, { signal: AbortSignal.abort() })
+    expectTypeOf(new PdfRenderError('layout', new Error('x'))).toExtend<Error>()
+    expectTypeOf<PdfRenderError['phase']>().toEqualTypeOf<RenderPhase>()
+    expectTypeOf<RenderPhase>().toEqualTypeOf<'snapshot' | 'layout' | 'render'>()
+
+    // Never called: the checks are for the compiler.
+    const misuse = (instance: PdfInstance) => {
+      // @ts-expect-error pageCount is read only
+      instance.pageCount = 2
+      // @ts-expect-error signal must be an AbortSignal
+      void instance.toBlob({ signal: true })
+    }
+    expectTypeOf(misuse).toBeFunction()
   })
 })

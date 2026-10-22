@@ -1,5 +1,24 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { defineAsyncComponent, defineComponent, h, ref } from 'vue'
+
+// The link and its document load in their own chunk once the demo mounts, but `lazy` keeps
+// the engine idle until the link is hovered, focused or clicked. A click that lands first
+// waits for the file.
+const LazyReportLink = defineAsyncComponent(async () => {
+  const [{ PdfDownloadLink }, { default: ReportDocument }] = await Promise.all([
+    import('vue-pdf-document'),
+    import('../examples/ReportDocument.vue'),
+  ])
+  return defineComponent(
+    (_, { attrs, slots }) =>
+      () =>
+        h(PdfDownloadLink, { ...attrs, document: ReportDocument }, slots),
+  )
+})
+const linkState = ref('Nothing rendered yet.')
+const onRendered = ({ pageCount }: { pageCount: number }) => {
+  linkState.value = `Rendered ${pageCount} pages on first touch.`
+}
 
 const busy = ref(false)
 const result = ref('')
@@ -33,4 +52,15 @@ const download = async () => {
     {{ busy ? 'Rendering…' : 'Download a 20-section report' }}
   </button>
   <p class="note" data-result>{{ result || 'Nothing rendered yet.' }}</p>
+  <LazyReportLink
+    lazy
+    class="button"
+    :document-props="{ sections: 10 }"
+    file-name="short-report.pdf"
+    data-lazy-link
+    @rendered="onRendered"
+  >
+    Download a 10-section report (lazy link)
+  </LazyReportLink>
+  <p class="note" data-lazy-result>{{ linkState }}</p>
 </template>

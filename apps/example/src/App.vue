@@ -173,7 +173,8 @@ const openGenerator = () => {
                 <h3>On demand</h3>
                 <p>
                   <code>renderToBlob()</code> behind a button, with the library and the document loaded by dynamic
-                  <code>import()</code> only when someone asks for the file.
+                  <code>import()</code> only when someone asks for the file. Below it, a
+                  <code>&lt;PdfDownloadLink lazy&gt;</code> that renders only once it's hovered, focused or clicked.
                 </p>
               </header>
               <OnDemandDemo />

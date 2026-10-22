@@ -74,17 +74,21 @@ The preview renders again, debounced, whenever the data the document reads chang
 
 ## API
 
-| export                                                      | what it does                                                               |
-| ----------------------------------------------------------- | -------------------------------------------------------------------------- |
-| `Document`, `Page`, `View`, `Text`, `Link`, `Image`, `Note` | The react-pdf primitives, as Vue components.                               |
-| `Canvas`, `Svg`, `G`, `Path`, `Rect`, `Circle`, …           | Canvas drawing and the SVG set.                                            |
-| `<PdfViewer>`                                               | Renders a document into an `<iframe>`, with `loading` and `error` slots.   |
-| `<PdfDownloadLink>`                                         | An `<a download>` that points at the rendered file.                        |
-| `usePdf(document, props?, { debounce })`                    | `blob`, `url`, `loading` and `error` refs that follow reactive changes.    |
-| `renderToBlob(document, props?)`                            | Renders once to a `Blob`.                                                  |
-| `renderToBuffer(document, props?)`                          | Renders once to a `Uint8Array`; works in Node and workers.                 |
-| `pdf(document, props?)`                                     | The low-level handle: `toBlob()`, `toBuffer()`, `onChange()`, `unmount()`. |
-| `Font`, `StyleSheet`                                        | react-pdf's font store, and a typed identity helper for styles.            |
+| export                                                      | what it does                                                                                                                                  |
+| ----------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Document`, `Page`, `View`, `Text`, `Link`, `Image`, `Note` | The react-pdf primitives, as Vue components.                                                                                                  |
+| `Canvas`, `Svg`, `G`, `Path`, `Rect`, `Circle`, …           | Canvas drawing and the SVG set.                                                                                                               |
+| `<PdfViewer>`                                               | Renders a document into an `<iframe>`, with `loading` and `error` slots, `page`, `zoom` and `toolbar` hints, and `rendered` / `error` events. |
+| `<PdfDownloadLink>`                                         | An `<a download>` that points at the rendered file; `lazy` renders only when the link is touched.                                             |
+| `usePdf(document, props?, { debounce, enabled })`           | `blob`, `url`, `loading`, `error` and `pageCount` refs that follow reactive changes.                                                          |
+| `renderToBlob(document, props?)`                            | Renders once to a `Blob`.                                                                                                                     |
+| `renderToBuffer(document, props?)`                          | Renders once to a `Uint8Array`; works in Node and workers.                                                                                    |
+| `renderToStream(document, props?)`                          | Renders once to a web `ReadableStream` of PDF chunks.                                                                                         |
+| `pdf(document, props?)`                                     | The low-level handle: `toBlob()`, `toBuffer()`, `toStream()`, `pageCount`, `onChange()`, `unmount()`.                                         |
+| `PdfRenderError`                                            | What a failed render rejects with; `phase` names the step that failed.                                                                        |
+| `Font`, `StyleSheet`                                        | react-pdf's font store, and a typed identity helper for styles.                                                                               |
+
+Every render function and method takes `{ signal }` as its last argument, so an `AbortController` can cancel a render that's no longer needed.
 
 In templates, kebab-case attributes reach the engine in camelCase, flags such as `fixed`, `break` and `wrap` work as bare attributes, `:style` takes objects or arrays, and the `#render` slot replaces react-pdf's `render` prop for page numbers.
 

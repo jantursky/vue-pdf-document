@@ -1,6 +1,6 @@
 ---
 title: Server-side rendering
-description: Render PDFs in Node, in a Nuxt server route or in a worker.
+description: Render PDFs in Node, stream them over HTTP, or serve them from a Nuxt server route.
 ---
 
 `renderToBuffer()` returns a `Uint8Array` and needs no DOM, so it runs in Node 22, in workers and in edge runtimes that allow `fetch` for remote images and fonts.
@@ -29,6 +29,32 @@ const Hello = { render: () => h(Document, () => h(Page, () => h(Text, () => 'Hel
 const pdf = await renderToBuffer(Hello)
 ```
 
+## Streaming the response
+
+`renderToStream()` returns a web `ReadableStream`, so the first bytes go out while pdfkit is still writing the rest, and the whole file never has to sit in memory as one buffer. Node's `Readable.fromWeb()` connects it to a response:
+
+```ts server.ts
+import { createServer } from 'node:http'
+import { Readable } from 'node:stream'
+
+import { renderToStream } from 'vue-pdf-document'
+
+import ReportDocument from './ReportDocument.vue'
+
+createServer((request, response) => {
+  const controller = new AbortController()
+  // Stop rendering when the client goes away.
+  response.on('close', () => controller.abort())
+
+  response.writeHead(200, { 'content-type': 'application/pdf' })
+  Readable.fromWeb(renderToStream(ReportDocument, { sections: 60 }, { signal: controller.signal }))
+    .on('error', () => response.destroy())
+    .pipe(response)
+}).listen(3000)
+```
+
+The status line is sent before the file exists, so a failed render can only cut the response short. When the client needs a proper error status, render with `renderToBuffer()` first. Runtimes built on the Fetch API (Deno, Bun, Cloudflare Workers) take the stream as a body as it is: `new Response(renderToStream(ReportDocument), { headers: { 'content-type': 'application/pdf' } })`.
+
 ## Nuxt
 
 In a server route, return the bytes with the right header:
@@ -43,3 +69,5 @@ export default defineEventHandler(async (event) => {
   return renderToBuffer(InvoiceDocument, { customer: 'Ada', total: 42 })
 })
 ```
+
+h3 sends a returned `ReadableStream` as it's produced, so `return renderToStream(InvoiceDocument, { customer: 'Ada', total: 42 })` streams the same file.

@@ -5,6 +5,12 @@ export type { Orientation, PageSize, SourceObject, Style }
 /** A style object, or an array of them merged left to right, as Vue does for `style` on any element. */
 export type PdfStyle = Style | (Style | false | null | undefined)[]
 
+/** What `onRender` receives after a finished `toBlob()`. */
+export interface RenderInfo {
+  blob: Blob
+  pageCount: number
+}
+
 export interface DynamicProps {
   pageNumber: number
   totalPages: number
@@ -49,8 +55,8 @@ export interface DocumentProps {
     documentAssembly?: boolean
   }
   style?: PdfStyle
-  /** Called with the finished file after `toBlob()`. */
-  onRender?: (result: { blob: Blob }) => void
+  /** Called with the finished file and its page count after `toBlob()`. */
+  onRender?: (result: RenderInfo) => void
 }
 
 export interface PageProps extends BaseProps {

@@ -5,13 +5,15 @@ import {
   readonly,
   ref,
   shallowRef,
+  toValue,
+  watch,
   type Component,
   type MaybeRefOrGetter,
   type Ref,
 } from 'vue'
 
 import type { Props } from '../core/nodes'
-import { pdf, type PdfInstance } from '../core/pdf'
+import { isAbortError, pdf, type PdfInstance } from '../core/pdf'
 
 /** How long a replaced object URL stays valid, for downloads and frames still reading it. */
 const REVOKE_DELAY = 10_000
@@ -19,6 +21,8 @@ const REVOKE_DELAY = 10_000
 export interface UsePdfOptions {
   /** Milliseconds to wait after the last change before rendering again. `100` by default. */
   debounce?: number
+  /** While `false`, nothing renders. Turning it `true` renders once. `true` by default. */
+  enabled?: MaybeRefOrGetter<boolean>
 }
 
 export interface UsePdfReturn {
@@ -28,13 +32,16 @@ export interface UsePdfReturn {
   url: Readonly<Ref<string | null>>
   loading: Readonly<Ref<boolean>>
   error: Readonly<Ref<unknown>>
-  /** Renders again now, without waiting for a change. */
+  /** Pages of the file in `blob`, or `null` before the first render finishes. */
+  pageCount: Readonly<Ref<number | null>>
+  /** Renders again now, without waiting for a change. Does nothing while disabled. */
   update: () => Promise<void>
 }
 
 /**
  * Renders `document` to a Blob and keeps it current. Reactive state the document
  * reads, through `props` or directly, triggers a new render after `debounce` ms.
+ * A render that a newer one overtakes is aborted.
  * Call it inside a component's setup or an effect scope. In a component, the first
  * render waits for `onMounted`, so server-side rendering never touches the engine.
  */
@@ -43,17 +50,27 @@ export function usePdf(
   props?: MaybeRefOrGetter<Props | undefined>,
   options: UsePdfOptions = {},
 ): UsePdfReturn {
-  const { debounce = 100 } = options
+  const { debounce = 100, enabled = true } = options
+  const isEnabled = (): boolean => toValue(enabled)
   const blob = shallowRef<Blob | null>(null)
   const url = ref<string | null>(null)
-  const loading = ref(true)
+  const loading = ref(isEnabled())
   const error = shallowRef<unknown>(null)
+  const pageCount = ref<number | null>(null)
 
   let instance: PdfInstance | undefined
   let stop: (() => void) | undefined
   let disposed = false
   let run = 0
   let timer: ReturnType<typeof setTimeout> | undefined
+  let controller: AbortController | undefined
+
+  /** Drops the pending and the running render. */
+  const cancel = (): void => {
+    run++
+    clearTimeout(timer)
+    controller?.abort()
+  }
 
   // A replaced URL may still be loading in a frame or downloading from a link, so it is
   // revoked a little later. Everything left is revoked when the scope ends.
@@ -73,19 +90,22 @@ export function usePdf(
   }
 
   const update = async (): Promise<void> => {
-    if (!instance) return
+    if (!instance || !isEnabled()) return
     clearTimeout(timer)
     const current = ++run
+    controller?.abort()
+    const own = (controller = new AbortController())
     loading.value = true
     try {
-      const result = await instance.toBlob()
+      const result = await instance.toBlob({ signal: own.signal })
       // A newer render started meanwhile; its result wins.
       if (current !== run) return
+      pageCount.value = instance.pageCount
       blob.value = result
       setUrl(URL.createObjectURL(result))
       error.value = null
     } catch (caught) {
-      if (current === run) error.value = caught
+      if (current === run && !isAbortError(caught)) error.value = caught
     } finally {
       if (current === run) loading.value = false
     }
@@ -96,18 +116,27 @@ export function usePdf(
     instance = pdf(document, props)
     stop = instance.onChange(() => {
       clearTimeout(timer)
-      timer = setTimeout(() => void update(), debounce)
+      if (isEnabled()) timer = setTimeout(() => void update(), debounce)
     })
     void update()
   }
+
+  watch(isEnabled, (on) => {
+    if (!instance) return
+    if (on) {
+      void update()
+      return
+    }
+    cancel()
+    loading.value = false
+  })
 
   if (getCurrentInstance()) onMounted(start)
   else start()
 
   onScopeDispose(() => {
     disposed = true
-    run++
-    clearTimeout(timer)
+    cancel()
     stop?.()
     instance?.unmount()
     for (const [old, pending] of retiring) {
@@ -119,5 +148,12 @@ export function usePdf(
     url.value = null
   })
 
-  return { blob: readonly(blob), url: readonly(url), loading: readonly(loading), error: readonly(error), update }
+  return {
+    blob: readonly(blob),
+    url: readonly(url),
+    loading: readonly(loading),
+    error: readonly(error),
+    pageCount: readonly(pageCount),
+    update,
+  }
 }
