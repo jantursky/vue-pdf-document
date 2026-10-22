@@ -8,11 +8,11 @@
 
 Create PDF files with Vue 3 components. This repository holds the library, a demo app and the docs site.
 
-| Dark theme                                                                                                           | Light theme, with the PAID stamp                                                                       |
-| -------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| ![An invoice form next to a live PDF preview that follows every edit](apps/docs/public/screenshots/invoice-dark.jpg) | ![The same invoice in the light theme, marked as paid](apps/docs/public/screenshots/invoice-light.jpg) |
-| **Docs site**                                                                                                        |                                                                                                        |
-| ![The Templates guide on the docs site](apps/docs/public/screenshots/docs-site.jpg)                                  |                                                                                                        |
+| Invoice generator, dark theme                                                                                                                                    | Invoice example, light theme, with the PAID stamp                                                               |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| ![The invoice generator: a form with payment details and items next to a live PDF preview with a payment QR code](apps/docs/public/screenshots/invoice-dark.jpg) | ![A small invoice form next to its PDF preview, marked as paid](apps/docs/public/screenshots/invoice-light.jpg) |
+| **Docs site**                                                                                                                                                    |                                                                                                                 |
+| ![The Templates guide on the docs site](apps/docs/public/screenshots/docs-site.jpg)                                                                              |                                                                                                                 |
 
 | folder                      | what it is                                                                                       |
 | --------------------------- | ------------------------------------------------------------------------------------------------ |
