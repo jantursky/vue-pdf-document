@@ -4,6 +4,25 @@ All notable changes to `vue-pdf-document` are listed here. The format follows [K
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-10-23
+
+### Added
+
+- `renderToStream()` and `PdfInstance.toStream()`: the file as a web `ReadableStream<Uint8Array>`, emitted in chunks as pdfkit writes it. Cancelling the stream aborts the render, and `renderToStream()` unmounts the document when the stream ends.
+- A `{ signal }` option on every render function and method. An aborted render rejects with a `DOMException` named `AbortError`, skips `onRender`, and leaves the instance ready for the next render.
+- `PdfInstance.pageCount`, the page count of the last finished render. `<Document onRender>` now receives `{ blob, pageCount }`.
+- `PdfRenderError`, with `phase` (`snapshot`, `layout` or `render`) and the original error as `cause`. New types: `RenderOptions`, `RenderInfo`, `RenderPhase`.
+- `usePdf` option `enabled` (a boolean, ref or getter): while `false`, nothing renders and a pending render is dropped; turning it `true` renders once. `<PdfViewer>` and `<PdfDownloadLink>` take it as a prop.
+- `usePdf` returns a `pageCount` ref, and aborts a render that a newer one overtakes instead of letting it finish.
+- `rendered` (`{ blob, url, pageCount }`) and `error` events on `<PdfViewer>` and `<PdfDownloadLink>`.
+- `<PdfDownloadLink lazy>`: renders only once the link is hovered, focused or clicked. A click before the file is ready is held and starts the download when it is.
+- `page`, `zoom` and `toolbar` props on `<PdfViewer>`, passed to the browser's viewer in the URL fragment.
+
+### Changed
+
+- A failed render rejects with a `PdfRenderError` instead of the engine's own error. Its message is the original one with a `[vue-pdf-document]` prefix, and the original error is in `cause`.
+- The pdfkit document is created after layout instead of before, so a render aborted during layout never starts writing a file.
+
 ## [1.0.1] - 2026-10-22
 
 ### Changed
@@ -27,5 +46,6 @@ The first stable version.
 - An invoice generator in the demo app, on its own tab: VAT per rate, discounts, reverse charge, an EPC payment QR code, a logo, English and Slovak, and JSON export and import.
 
 [Unreleased]: https://www.npmjs.com/package/vue-pdf-document
+[1.1.0]: https://www.npmjs.com/package/vue-pdf-document/v/1.1.0
 [1.0.1]: https://www.npmjs.com/package/vue-pdf-document/v/1.0.1
 [1.0.0]: https://www.npmjs.com/package/vue-pdf-document/v/1.0.0

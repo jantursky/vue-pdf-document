@@ -1,6 +1,6 @@
 {
   "name": "vue-pdf-document",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "Create PDF files with Vue 3 components: a custom Vue renderer on top of the react-pdf layout engine.",
   "license": "MIT",
   "author": {
