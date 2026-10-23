@@ -4,6 +4,38 @@ All notable changes to `vue-pdf-document` are listed here. The format follows [K
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-10-23
+
+### Added
+
+- A `setup(app)` option on `pdf()`, `renderToBlob()`, `renderToBuffer()` and `renderToStream()`, called with the document's Vue app before it mounts, to install plugins or provide values. New type: `PdfOptions`.
+- `usePdf` option `inheritContext`, and an `inherit-context` prop on `<PdfViewer>` and `<PdfDownloadLink>`: the document sees what the calling component can inject, plus the app's global components, directives, `globalProperties` and plugin state, so `useI18n()` works inside it. Off by default.
+- `DocumentPropsOf<C>`, the props type a document component declares. New argument types `PdfArgs`, `RenderArgs` and `UsePdfArgs`.
+- Per-element prop types for the SVG primitives (`RectProps`, `PathProps`, `CircleProps`, `LinearGradientProps` and the rest, plus `SvgElementProps` and `SVGPresentationAttributes`), and `CanvasProps` with a typed `CanvasPainter`.
+
+### Changed
+
+- Types only, no runtime change: document props are checked against the document. `usePdf`, `pdf`, `renderToBlob`, `renderToBuffer` and `renderToStream` type their props argument from the component, and require it when the document has required props. `<PdfViewer>` and `<PdfDownloadLink>` are generic, so `document-props` is checked in templates. Documents without declared props still take anything.
+
+  ```ts
+  // InvoiceDocument: defineProps<{ customer: string; total: number }>()
+  renderToBuffer(InvoiceDocument, { custmer: 'Ada' }) // compiled before, now an error
+  renderToBuffer(InvoiceDocument, { customer: 'Ada', total: 42 }) // fine
+  ```
+
+- Types only: SVG elements no longer accept any attribute. Each takes its own geometry and the presentation attributes react-pdf draws, and requires what it can't be drawn without (`d` on `Path`, `width` and `height` on `Rect`, `r` on `Circle`, `id` on gradients and `ClipPath`). With `vueCompilerOptions.checkUnknownProps`, unknown template attributes are errors too.
+
+  ```vue
+  <Rect widht="80" height="80" />
+  <!-- compiled before, now an error: width is required -->
+  <Rect width="80" height="80" />
+  <!-- fine -->
+  ```
+
+### Fixed
+
+- Components returned from a `render` prop or `#render` slot now run with the document's app context, so they see its plugins, global components and app-level provides. Before, they ran with an empty context.
+
 ## [1.1.0] - 2026-10-23
 
 ### Added
@@ -46,6 +78,7 @@ The first stable version.
 - An invoice generator in the demo app, on its own tab: VAT per rate, discounts, reverse charge, an EPC payment QR code, a logo, English and Slovak, and JSON export and import.
 
 [Unreleased]: https://www.npmjs.com/package/vue-pdf-document
+[1.2.0]: https://www.npmjs.com/package/vue-pdf-document/v/1.2.0
 [1.1.0]: https://www.npmjs.com/package/vue-pdf-document/v/1.1.0
 [1.0.1]: https://www.npmjs.com/package/vue-pdf-document/v/1.0.1
 [1.0.0]: https://www.npmjs.com/package/vue-pdf-document/v/1.0.0
