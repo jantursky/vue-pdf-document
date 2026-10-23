@@ -4,6 +4,12 @@ All notable changes to `vue-pdf-document` are listed here. The format follows [K
 
 ## [Unreleased]
 
+## [1.2.1] - 2026-10-23
+
+### Changed
+
+- The README shows a screenshot of the demo's invoice generator and the new logo. No code changes.
+
 ## [1.2.0] - 2026-10-23
 
 ### Added
@@ -78,6 +84,7 @@ The first stable version.
 - An invoice generator in the demo app, on its own tab: VAT per rate, discounts, reverse charge, an EPC payment QR code, a logo, English and Slovak, and JSON export and import.
 
 [Unreleased]: https://www.npmjs.com/package/vue-pdf-document
+[1.2.1]: https://www.npmjs.com/package/vue-pdf-document/v/1.2.1
 [1.2.0]: https://www.npmjs.com/package/vue-pdf-document/v/1.2.0
 [1.1.0]: https://www.npmjs.com/package/vue-pdf-document/v/1.1.0
 [1.0.1]: https://www.npmjs.com/package/vue-pdf-document/v/1.0.1
