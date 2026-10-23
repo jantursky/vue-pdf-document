@@ -11,7 +11,7 @@ const pkg = JSON.parse(
 export default defineConfig({
   title: 'vue-pdf-document',
   description: 'Create PDF files with Vue 3 components.',
-  logo: '/logo.svg',
+  logo: { image: { light: '/logo.svg', dark: '/icon-dark.svg', alt: '' } },
   github: {
     owner: 'jantursky',
     repo: 'vue-pdf-document',

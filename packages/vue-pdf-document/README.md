@@ -6,7 +6,7 @@
 
 [Docs](https://vue-pdf-document-docs.vercel.app) · [Demo](https://vue-pdf-document.vercel.app) · [Changelog](https://github.com/jantursky/vue-pdf-document/blob/main/packages/vue-pdf-document/CHANGELOG.md) · [GitHub](https://github.com/jantursky/vue-pdf-document)
 
-![An invoice form next to a live PDF preview that follows every edit](https://raw.githubusercontent.com/jantursky/vue-pdf-document/main/apps/docs/public/screenshots/invoice-dark.jpg)
+[![An invoice form next to a live PDF preview that follows every edit](https://raw.githubusercontent.com/jantursky/vue-pdf-document/main/.github/assets/generator-light.png)](https://vue-pdf-document.vercel.app/#generator)
 
 Create PDF files with Vue 3 components. Write `<Document>`, `<Page>`, `<View>` and `<Text>` in a template, with props, `v-for`, `v-if` and computed values, and get a real PDF with selectable text, in the browser or in Node.
 

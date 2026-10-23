@@ -4,6 +4,11 @@
   --sky: #66c2ff;
   --ink: #0a0e1c;
 
+  /* The logo takes Vue's green and slate; the UI accent stays mint. */
+  --logo-green: #42b883;
+  --logo-band: #2f8f66;
+  --logo-slate: #35495e;
+
   --bg: #ffffff;
   --band: #f8f9fc;
   --surface: #ffffff;
@@ -61,6 +66,8 @@
     --syntax-comment: #868789;
     --shadow-md: 0 10px 15px -3px rgb(0 0 0 / 0.5), 0 4px 6px -4px rgb(0 0 0 / 0.5);
     --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.5);
+    --logo-band: #7fd3a8;
+    --logo-slate: #8ea3ba;
     color-scheme: dark;
   }
 }
@@ -88,6 +95,8 @@
   --syntax-comment: #868789;
   --shadow-md: 0 10px 15px -3px rgb(0 0 0 / 0.5), 0 4px 6px -4px rgb(0 0 0 / 0.5);
   --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.5);
+  --logo-band: #7fd3a8;
+  --logo-slate: #8ea3ba;
   color-scheme: dark;
 }
 
@@ -208,9 +217,8 @@ li code {
 }
 
 .brand-mark {
-  width: 24px;
-  height: 24px;
-  color: var(--fg);
+  width: 28px;
+  height: 28px;
 }
 
 .version {

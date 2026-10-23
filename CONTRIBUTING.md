@@ -44,6 +44,7 @@ CI runs all of them on every pull request.
 - TypeScript strict, `<script setup>` in components, Prettier formatting (`bun run format`).
 - Every behavior change comes with a test. Unit tests render real PDFs; `test/fixtures.ts` has helpers to read the text and metadata back.
 - Code samples in `packages/vue-pdf-document/README.md` and `apps/docs/docs/getting-started.mdx` are type-checked. After editing them, run `bun run sync:samples`.
+- The README screenshots in `.github/assets` come from `bun run screenshots`, which builds the demo and captures it in light and dark. Run it again when the demo's look changes.
 - Add a line under `## [Unreleased]` in `packages/vue-pdf-document/CHANGELOG.md` for anything users will notice.
 - Breaking changes need a new major version and an entry under **Changed**.
 

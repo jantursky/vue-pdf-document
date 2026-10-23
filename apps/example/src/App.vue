@@ -55,9 +55,28 @@ const openGenerator = () => {
   <header class="nav">
     <div class="container nav-inner">
       <a class="brand" href="/">
-        <svg class="brand-mark" viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M5 2h10l5 5v15H5z" fill="currentColor" />
-          <path d="M15 2v5h5z" style="fill: var(--mint)" />
+        <svg class="brand-mark" viewBox="0 0 64 64" aria-hidden="true">
+          <mask id="brand-bands">
+            <path
+              d="M16 6h20v12a6 6 0 0 0 6 6h12v24a10 10 0 0 1-10 10H16A10 10 0 0 1 6 48V16A10 10 0 0 1 16 6Z"
+              fill="#fff"
+            />
+            <path d="M0 30C18 20 36 44 64 24M0 44C18 34 36 58 64 38" stroke="#000" stroke-width="4" fill="none" />
+          </mask>
+          <g mask="url(#brand-bands)">
+            <path
+              d="M16 6h20v12a6 6 0 0 0 6 6h12v24a10 10 0 0 1-10 10H16A10 10 0 0 1 6 48V16A10 10 0 0 1 16 6Z"
+              style="fill: var(--logo-green)"
+            />
+            <path d="M0 30C18 20 36 44 64 24V64H0Z" style="fill: var(--logo-band)" />
+            <path d="M0 44C18 34 36 58 64 38V64H0Z" style="fill: var(--logo-slate)" />
+          </g>
+          <path
+            d="M41 7.5v9.5a3 3 0 0 0 3 3h9.5Z"
+            stroke-width="2"
+            stroke-linejoin="round"
+            style="fill: var(--logo-slate); stroke: var(--logo-slate)"
+          />
         </svg>
         vue-pdf-document
         <span class="version">{{ version }}</span>

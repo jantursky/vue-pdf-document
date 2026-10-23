@@ -8,11 +8,12 @@
 
 Create PDF files with Vue 3 components. This repository holds the library, a demo app and the docs site.
 
-| Invoice generator, dark theme                                                                                                                                    | Invoice example, light theme, with the PAID stamp                                                               |
-| ---------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| ![The invoice generator: a form with payment details and items next to a live PDF preview with a payment QR code](apps/docs/public/screenshots/invoice-dark.jpg) | ![A small invoice form next to its PDF preview, marked as paid](apps/docs/public/screenshots/invoice-light.jpg) |
-| **Docs site**                                                                                                                                                    |                                                                                                                 |
-| ![The Templates guide on the docs site](apps/docs/public/screenshots/docs-site.jpg)                                                                              |                                                                                                                 |
+<a href="https://vue-pdf-document.vercel.app/#generator"><picture><source media="(prefers-color-scheme: dark)" srcset=".github/assets/generator-dark.png" /><img src=".github/assets/generator-light.png" alt="The invoice generator: invoice details on the left, the live PDF preview of the same invoice with a payment QR code on the right" /></picture></a>
+
+<p>
+  <a href="https://vue-pdf-document.vercel.app"><picture><source media="(prefers-color-scheme: dark)" srcset=".github/assets/overview-dark.png" /><img src=".github/assets/overview-light.png" alt="The demo home page: a short intro, the install command and a Vue component that writes a PDF" width="49%" /></picture></a>
+  <a href="https://vue-pdf-document.vercel.app/#example-invoice"><picture><source media="(prefers-color-scheme: dark)" srcset=".github/assets/examples-dark.png" /><img src=".github/assets/examples-light.png" alt="The invoice example: a small form next to the PDF it renders, updated on every edit" width="49%" /></picture></a>
+</p>
 
 | folder                      | what it is                                                                                       |
 | --------------------------- | ------------------------------------------------------------------------------------------------ |
@@ -30,6 +31,8 @@ The demo's second tab ([`#generator`](https://vue-pdf-document.vercel.app/#gener
 - a logo upload, an accent color, and English or Slovak labels with an embedded Roboto font
 - a table header that repeats on every page, and page numbers in the footer
 - one `usePdf()` render shared by the preview and the download, a draft saved in `localStorage`, and JSON export and import
+
+<p align="center"><img src=".github/assets/invoice-pdf.png" alt="The sample invoice as a PDF page: supplier and customer, bank details with a payment QR code, four line items, a VAT summary and the amount due" width="480" /></p>
 
 ## How it works
 
