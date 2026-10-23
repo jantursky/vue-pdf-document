@@ -1,22 +1,25 @@
-<script setup lang="ts">
+<script setup lang="ts" generic="C extends Component">
 import { ref, watch, type Component } from 'vue'
 
 import { usePdf } from '../composables/usePdf'
+import type { DocumentPropsOf } from './types'
 
 const props = withDefaults(
   defineProps<{
     /** A component that renders a `<Document>`. Read once, at setup. */
-    document: Component
-    /** Props for `document`. Changes render the file again. */
-    documentProps?: Record<string, unknown>
+    document: C
+    /** Props for `document`, checked against the props it declares. Changes render the file again. */
+    documentProps?: DocumentPropsOf<C>
     /** File name offered by the browser. */
     fileName?: string
     /** While `false`, nothing renders. */
     enabled?: boolean
     /** Render only once the link is hovered, focused or clicked. */
     lazy?: boolean
+    /** Let the document see what this component can inject, and the app's plugins. */
+    inheritContext?: boolean
   }>(),
-  { fileName: 'document.pdf', enabled: true, lazy: false },
+  { fileName: 'document.pdf', enabled: true, lazy: false, inheritContext: false },
 )
 
 const emit = defineEmits<{
@@ -34,8 +37,9 @@ const activated = ref(!props.lazy)
 const held = ref(false)
 
 // The document is read once; `documentProps` stays reactive through the getter.
-const { url, blob, pageCount, loading, error } = usePdf(props.document, () => props.documentProps, {
+const { url, blob, pageCount, loading, error } = usePdf(props.document as Component, () => props.documentProps, {
   enabled: () => props.enabled && activated.value,
+  inheritContext: props.inheritContext,
 })
 
 const activate = () => {

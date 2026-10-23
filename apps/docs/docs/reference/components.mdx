@@ -16,8 +16,8 @@ Each primitive renders one react-pdf node. Props are passed through to the engin
 | `Link`                                                                                                                                                  | `src`: a URL, or `#id` of an element in the same document                                                                                                                                      |
 | `Image`                                                                                                                                                 | `src`: a URL, data URI, buffer, `{ uri, method, headers, body }` or a function returning one; `cache`                                                                                          |
 | `Note`                                                                                                                                                  | Its text becomes a PDF annotation.                                                                                                                                                             |
-| `Canvas`                                                                                                                                                | `paint(painter, availableWidth, availableHeight)` draws with pdfkit's API.                                                                                                                     |
-| `Svg`, `G`, `Path`, `Rect`, `Line`, `Circle`, `Ellipse`, `Polygon`, `Polyline`, `Tspan`, `Defs`, `Stop`, `ClipPath`, `LinearGradient`, `RadialGradient` | SVG attributes such as `viewBox`, `d`, `fill`, `stroke`.                                                                                                                                       |
+| `Canvas`                                                                                                                                                | `paint(painter, availableWidth, availableHeight)` draws with pdfkit's API, typed as `CanvasPainter`.                                                                                           |
+| `Svg`, `G`, `Path`, `Rect`, `Line`, `Circle`, `Ellipse`, `Polygon`, `Polyline`, `Tspan`, `Defs`, `Stop`, `ClipPath`, `LinearGradient`, `RadialGradient` | Each element's own SVG attributes (`d` on `Path`, `width` and `height` on `Rect`, …) and the presentation attributes, typed per element.                                                       |
 
 Every primitive also accepts:
 
@@ -37,16 +37,17 @@ Every primitive also accepts:
 
 Renders the document into an `<iframe>` and keeps it current.
 
-| prop             | default         |                                                                 |
-| ---------------- | --------------- | --------------------------------------------------------------- |
-| `document`       | required        | A component that renders `<Document>`. Read once.               |
-| `document-props` | `undefined`     | Props for `document`. A change renders again.                   |
-| `title`          | `'PDF preview'` | Accessible name of the `<iframe>`.                              |
-| `debounce`       | `100`           | Milliseconds between the last change and a render.              |
-| `enabled`        | `true`          | While `false`, nothing renders. Turning it `true` renders once. |
-| `page`           | `undefined`     | The page the browser's viewer opens at.                         |
-| `zoom`           | `undefined`     | Zoom in percent, or `'page-fit'` / `'page-width'`.              |
-| `toolbar`        | `undefined`     | `false` hides the browser's viewer toolbar, `true` shows it.    |
+| prop              | default         |                                                                                           |
+| ----------------- | --------------- | ----------------------------------------------------------------------------------------- |
+| `document`        | required        | A component that renders `<Document>`. Read once.                                         |
+| `document-props`  | `undefined`     | Props for `document`, type-checked against the props it declares. A change renders again. |
+| `title`           | `'PDF preview'` | Accessible name of the `<iframe>`.                                                        |
+| `debounce`        | `100`           | Milliseconds between the last change and a render.                                        |
+| `enabled`         | `true`          | While `false`, nothing renders. Turning it `true` renders once.                           |
+| `page`            | `undefined`     | The page the browser's viewer opens at.                                                   |
+| `zoom`            | `undefined`     | Zoom in percent, or `'page-fit'` / `'page-width'`.                                        |
+| `toolbar`         | `undefined`     | `false` hides the browser's viewer toolbar, `true` shows it.                              |
+| `inherit-context` | `false`         | Let the document inject from the page. See [Sharing context](/guides/sharing-context).    |
 
 `page`, `zoom` and `toolbar` are appended to the frame's URL as PDF open parameters (`#page=3&zoom=100&toolbar=0`). They're hints to the browser's own viewer: Chromium and Firefox read all three, Safari ignores `toolbar` and the fit modes. Without them the URL has no fragment.
 
@@ -74,13 +75,14 @@ It renders `<div data-pdf-viewer>` around `<iframe data-pdf-viewer-frame>`. `dat
 
 Renders `<a download data-pdf-download-link>` pointing at the latest file.
 
-| prop             | default          |                                                           |
-| ---------------- | ---------------- | --------------------------------------------------------- |
-| `document`       | required         | A component that renders `<Document>`.                    |
-| `document-props` | `undefined`      | Props for `document`.                                     |
-| `file-name`      | `'document.pdf'` | The name the browser saves the file as.                   |
-| `enabled`        | `true`           | While `false`, nothing renders.                           |
-| `lazy`           | `false`          | Render only once the link is hovered, focused or clicked. |
+| prop              | default          |                                                                                        |
+| ----------------- | ---------------- | -------------------------------------------------------------------------------------- |
+| `document`        | required         | A component that renders `<Document>`.                                                 |
+| `document-props`  | `undefined`      | Props for `document`, type-checked against the props it declares.                      |
+| `file-name`       | `'document.pdf'` | The name the browser saves the file as.                                                |
+| `enabled`         | `true`           | While `false`, nothing renders.                                                        |
+| `lazy`            | `false`          | Render only once the link is hovered, focused or clicked.                              |
+| `inherit-context` | `false`          | Let the document inject from the page. See [Sharing context](/guides/sharing-context). |
 
 The default slot receives `{ loading, url, blob, error }` and falls back to "Download PDF". Until the first render finishes the link has no `href` and carries `aria-disabled="true"`.
 

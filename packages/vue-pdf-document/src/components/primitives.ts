@@ -7,7 +7,22 @@ import type {
   ImageProps,
   LinkProps,
   PageProps,
+  CanvasProps,
+  CircleProps,
+  ClipPathProps,
+  DefsProps,
+  EllipseProps,
+  GProps,
+  LinearGradientProps,
+  LineProps,
+  PathProps,
+  PolygonProps,
+  PolylineProps,
+  RadialGradientProps,
+  RectProps,
+  StopProps,
   SvgProps,
+  TspanProps,
   TextProps,
   ViewProps,
 } from './types'
@@ -51,20 +66,20 @@ export const Text = primitive<TextProps>('Text', P.Text)
 export const Link = primitive<LinkProps>('Link', P.Link)
 export const Image = primitive<ImageProps>('Image', P.Image)
 export const Note = primitive<{ style?: ViewProps['style'] }>('Note', P.Note)
-export const Canvas = primitive<ViewProps & { paint?: (...args: unknown[]) => unknown }>('Canvas', P.Canvas)
+export const Canvas = primitive<CanvasProps>('Canvas', P.Canvas)
 
 export const Svg = primitive<SvgProps>('Svg', P.Svg)
-export const G = primitive<SvgProps>('G', P.G)
-export const Path = primitive<SvgProps>('Path', P.Path)
-export const Rect = primitive<SvgProps>('Rect', P.Rect)
-export const Line = primitive<SvgProps>('Line', P.Line)
-export const Circle = primitive<SvgProps>('Circle', P.Circle)
-export const Ellipse = primitive<SvgProps>('Ellipse', P.Ellipse)
-export const Polygon = primitive<SvgProps>('Polygon', P.Polygon)
-export const Polyline = primitive<SvgProps>('Polyline', P.Polyline)
-export const Tspan = primitive<SvgProps>('Tspan', P.Tspan)
-export const Defs = primitive<SvgProps>('Defs', P.Defs)
-export const Stop = primitive<SvgProps>('Stop', P.Stop)
-export const ClipPath = primitive<SvgProps>('ClipPath', P.ClipPath)
-export const LinearGradient = primitive<SvgProps>('LinearGradient', P.LinearGradient)
-export const RadialGradient = primitive<SvgProps>('RadialGradient', P.RadialGradient)
+export const G = primitive<GProps>('G', P.G)
+export const Path = primitive<PathProps>('Path', P.Path)
+export const Rect = primitive<RectProps>('Rect', P.Rect)
+export const Line = primitive<LineProps>('Line', P.Line)
+export const Circle = primitive<CircleProps>('Circle', P.Circle)
+export const Ellipse = primitive<EllipseProps>('Ellipse', P.Ellipse)
+export const Polygon = primitive<PolygonProps>('Polygon', P.Polygon)
+export const Polyline = primitive<PolylineProps>('Polyline', P.Polyline)
+export const Tspan = primitive<TspanProps>('Tspan', P.Tspan)
+export const Defs = primitive<DefsProps>('Defs', P.Defs)
+export const Stop = primitive<StopProps>('Stop', P.Stop)
+export const ClipPath = primitive<ClipPathProps>('ClipPath', P.ClipPath)
+export const LinearGradient = primitive<LinearGradientProps>('LinearGradient', P.LinearGradient)
+export const RadialGradient = primitive<RadialGradientProps>('RadialGradient', P.RadialGradient)

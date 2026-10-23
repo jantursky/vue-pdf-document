@@ -17,6 +17,8 @@ The same, as a web `ReadableStream<Uint8Array>` that emits the file in chunks as
 
 ## Options
 
+`renderToBlob()`, `renderToBuffer()`, `renderToStream()` and `pdf()` take `setup(app)`, called with the document's Vue app before it mounts, to install plugins or provide values. See [Sharing context](/guides/sharing-context).
+
 Every render function and method takes `{ signal }`, an `AbortSignal`:
 
 ```ts
@@ -28,7 +30,7 @@ controller.abort() // pending rejects with a DOMException named 'AbortError'
 
 The engine checks the signal between its steps (building the layout input, laying it out, writing the PDF). Layout itself can't be interrupted, so images and fonts it already started loading still load, but the result is thrown away and `onRender` isn't called. The instance stays usable for the next render.
 
-## pdf(document, props?)
+## pdf(document, props?, options?)
 
 The handle the other functions and `usePdf` are built on. The Vue app stays mounted until `unmount()`, so each render reflects the current props.
 
@@ -84,4 +86,6 @@ Returns `styles` unchanged. Its type keeps values such as `flexDirection: 'row'`
 
 ## Types
 
-`DocumentProps`, `PageProps`, `ViewProps`, `TextProps`, `LinkProps`, `ImageProps`, `SvgProps`, `BaseProps`, `Style`, `PdfStyle`, `PageSize`, `Orientation`, `SourceObject`, `DynamicProps`, `PdfInstance`, `RenderOptions`, `RenderInfo`, `RenderPhase`, `UsePdfOptions`, `UsePdfReturn`.
+`DocumentPropsOf<C>` is the props type a document component declares, as the render functions and `usePdf` check it. It's `Record<string, unknown>` for a document without declared props.
+
+`DocumentProps`, `DocumentPropsOf`, `PageProps`, `ViewProps`, `TextProps`, `LinkProps`, `ImageProps`, `BaseProps`, the SVG element props (`SvgProps`, `SvgElementProps`, `GProps`, `PathProps`, `RectProps`, `LineProps`, `CircleProps`, `EllipseProps`, `PolygonProps`, `PolylineProps`, `TspanProps`, `DefsProps`, `ClipPathProps`, `StopProps`, `LinearGradientProps`, `RadialGradientProps`, `SVGPresentationAttributes`), `CanvasProps`, `CanvasPainter`, `CanvasGradient`, `Style`, `PdfStyle`, `PageSize`, `Orientation`, `SourceObject`, `DynamicProps`, `PdfInstance`, `PdfOptions`, `PdfArgs`, `RenderArgs`, `UsePdfArgs`, `RenderOptions`, `RenderInfo`, `RenderPhase`, `UsePdfOptions`, `UsePdfReturn`.

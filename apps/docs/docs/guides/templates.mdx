@@ -45,6 +45,31 @@ react-pdf's `render` prop is called during pagination, when the page numbers are
 
 The `render` prop also works, and may return a string, a number or vnodes.
 
+## Typed documents
+
+The props argument of `usePdf`, `pdf` and the render functions, and `document-props` on `<PdfViewer>` and `<PdfDownloadLink>`, are checked against the props the document declares:
+
+```ts
+// InvoiceDocument.vue: defineProps<{ customer: string; total: number }>()
+
+usePdf(InvoiceDocument, () => ({ customer: customer.value, total: total.value })) // ok
+renderToBuffer(InvoiceDocument, { customer: 'Ada', total: '42' }) // error: total is a number
+renderToBuffer(InvoiceDocument, { custmer: 'Ada', total: 42 }) // error: unknown prop
+renderToBuffer(InvoiceDocument) // error: customer and total are required
+```
+
+A document without declared props, or one loaded with `defineAsyncComponent`, takes any props. `DocumentPropsOf<typeof InvoiceDocument>` gives the props type for your own helpers.
+
+The SVG elements have their own attributes: `<Rect>` needs `width` and `height`, `<Path>` needs `d`, gradients and `<ClipPath>` need an `id`, and presentation attributes such as `stroke-linecap` only take the values react-pdf draws. By default Vue lets unknown attributes through to a component, so a misspelled optional attribute isn't an error. Turn on `checkUnknownProps` to catch those too:
+
+```json tsconfig.json
+{
+  "vueCompilerOptions": { "checkUnknownProps": true }
+}
+```
+
+`<Canvas :paint>` receives a typed `CanvasPainter`, so `painter.moveTo(0, 0).lineTo(w, h).stroke()` is checked as you write it.
+
 ## Limits
 
-The document is mounted as its own Vue app, so it doesn't see `provide`/`inject`, plugins or global components from the page that shows it. Pass what it needs as props. Async setup and `<Suspense>` aren't awaited; load data first, then render.
+The document is mounted as its own Vue app, so by default it doesn't see `provide`/`inject`, plugins or global components from the page that shows it. Pass what it needs as props, or see [Sharing context](/guides/sharing-context) for `inheritContext` and `setup`. Async setup and `<Suspense>` aren't awaited; load data first, then render.

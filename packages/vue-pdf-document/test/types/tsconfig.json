@@ -1,0 +1,6 @@
+{
+  "extends": "../../tsconfig.json",
+  "include": ["../../src/shims.d.ts", "*.vue"],
+  "exclude": [],
+  "vueCompilerOptions": { "checkUnknownProps": true }
+}

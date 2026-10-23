@@ -25,4 +25,4 @@ The layout engine is the same, so styles, fonts, page sizes and pagination carry
 Two differences matter in practice:
 
 - Documents are passed as a component plus props, not as an element. The viewer re-renders when those props, or any reactive state the document reads, change. There's no need to memoize the document.
-- The document runs as its own Vue app. It doesn't inherit `provide`/`inject`, plugins (i18n, Pinia) or global components from the page. Pass translated strings and store data in as props.
+- The document runs as its own Vue app. It doesn't inherit `provide`/`inject`, plugins (i18n, Pinia) or global components from the page unless you ask for it with `inheritContext` or `setup`. See [Sharing context](/guides/sharing-context).

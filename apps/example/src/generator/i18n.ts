@@ -1,3 +1,5 @@
+import type { ComputedRef, InjectionKey } from 'vue'
+
 import type { Currency, Language, PaymentMethod } from './model'
 
 const en = {
@@ -81,6 +83,9 @@ const sk: Labels = {
 }
 
 export const labels: Record<Language, Labels> = { en, sk }
+
+/** The labels of the current invoice language, provided by the generator to the PDF template. */
+export const labelsKey: InjectionKey<ComputedRef<Labels>> = Symbol('labels')
 
 const locales: Record<Language, string> = { en: 'en-GB', sk: 'sk-SK' }
 

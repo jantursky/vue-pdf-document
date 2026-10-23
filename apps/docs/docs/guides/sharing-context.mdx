@@ -1,0 +1,84 @@
+---
+title: Sharing context
+description: Use provide/inject, vue-i18n and other plugins inside a document.
+---
+
+A document is mounted as its own Vue app, separate from the page that shows it. By default it sees nothing the page set up: no `provide`d values, no plugins, no global components. There are two ways to give it more.
+
+## Inherit from the page
+
+`inheritContext` lets the document see what the component calling `usePdf` can see: everything it can `inject` (its own `provide`s, its ancestors' and the app's), plus the app's global components, directives, `globalProperties` and plugin state.
+
+```ts
+const { url } = usePdf(InvoiceDocument, () => ({ invoice }), { inheritContext: true })
+```
+
+The components take it as a prop:
+
+```vue
+<PdfViewer inherit-context :document="InvoiceDocument" :document-props="{ invoice }" />
+<PdfDownloadLink inherit-context :document="InvoiceDocument" :document-props="{ invoice }" />
+```
+
+With `PdfViewer` and `PdfDownloadLink` the calling component is the viewer or link itself, so the document sees whatever is provided above it.
+
+Provided refs and computed values stay reactive. When one the document reads changes, the file renders again after the debounce, the same as for a prop.
+
+### vue-i18n
+
+Install vue-i18n on the app as usual, and call `useI18n()` in the document:
+
+```vue
+<!-- InvoiceDocument.vue -->
+<script setup lang="ts">
+import { useI18n } from 'vue-i18n'
+import { Document, Page, Text } from 'vue-pdf-document'
+
+const { t } = useI18n()
+</script>
+
+<template>
+  <Document>
+    <Page>
+      <Text>{{ t('total') }}</Text>
+    </Page>
+  </Document>
+</template>
+```
+
+```vue
+<PdfViewer inherit-context :document="InvoiceDocument" />
+```
+
+Changing `i18n.global.locale` re-renders the file in the new language. The demo's invoice generator gets its labels the same way: `InvoiceGenerator.vue` provides them and `InvoiceTemplate.vue` injects them.
+
+## Set up the document's app
+
+`setup(app)` is called with the document's own app before it mounts. Use it where there is no page to inherit from, such as on a server, or to give the document only what it needs:
+
+```ts
+import { createI18n } from 'vue-i18n'
+import { renderToBuffer } from 'vue-pdf-document'
+
+const i18n = createI18n({ legacy: false, locale: 'de', messages })
+
+const bytes = await renderToBuffer(
+  InvoiceDocument,
+  { invoice },
+  {
+    setup: (app) => {
+      app.use(i18n)
+      app.provide('company', company)
+    },
+  },
+)
+```
+
+`pdf()`, `renderToBlob()`, `renderToBuffer()` and `renderToStream()` all take it.
+
+## Limits
+
+- **`#render` slots** (page numbers) see the document app's plugins, global components and app-level `provide`s, from either option. They don't see values a component inside the document provides, because layout mounts their content outside the document's component tree.
+- **Plugins that need the DOM**, such as vue-router or directives that touch elements, can fail inside the document, more so on a server or in a worker. Inheriting copies them anyway; with `setup`, install only what the document uses.
+- **Shared stores** re-render the document on every change it reads. Read only the state the document needs, or pass a snapshot as props.
+- **Not inherited:** the page's `config.errorHandler`, `warnHandler` and global mixins.

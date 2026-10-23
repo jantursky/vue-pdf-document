@@ -1,9 +1,9 @@
 import { mount } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { defineComponent, h, nextTick } from 'vue'
+import { defineComponent, h, inject, nextTick, provide, type VNode } from 'vue'
 
 import { Page, PdfDownloadLink, PdfViewer, Text } from '../../src'
-import { singlePage } from '../fixtures'
+import { pdfText, singlePage } from '../fixtures'
 
 const Doc = singlePage(() => h(Text, null, () => 'hi'))
 const wrappers: { unmount: () => void }[] = []
@@ -169,5 +169,63 @@ describe('server-side rendering', () => {
     )
     expect(html).toContain('Rendering…')
     expect(html).not.toContain('<iframe')
+  })
+})
+
+describe('inherit-context', () => {
+  const Theme = defineComponent(() => {
+    const theme = inject('theme', 'none')
+    return () => h(Text, null, () => `Theme: ${theme}`)
+  })
+  const ThemedDoc = singlePage(() => h(Theme))
+
+  const provider = (child: () => VNode) =>
+    defineComponent(() => {
+      provide('theme', 'dark')
+      return child
+    })
+
+  it('lets PdfViewer documents inject from the page', async () => {
+    let blob: Blob | undefined
+    const wrapper = mount(
+      provider(() =>
+        h(PdfViewer, {
+          document: ThemedDoc,
+          inheritContext: true,
+          onRendered: (result: { blob: Blob }) => (blob = result.blob),
+        }),
+      ),
+    )
+    wrappers.push(wrapper)
+    await until(() => blob !== undefined)
+    expect(pdfText(new Uint8Array(await blob!.arrayBuffer()))).toContain('Theme: dark')
+  })
+
+  it('lets PdfDownloadLink documents inject from the page', async () => {
+    let blob: Blob | undefined
+    const wrapper = mount(
+      provider(() =>
+        h(PdfDownloadLink, {
+          document: ThemedDoc,
+          inheritContext: true,
+          onRendered: (result: { blob: Blob }) => (blob = result.blob),
+        }),
+      ),
+    )
+    wrappers.push(wrapper)
+    await until(() => blob !== undefined)
+    expect(pdfText(new Uint8Array(await blob!.arrayBuffer()))).toContain('Theme: dark')
+  })
+
+  it('stays isolated without the prop', async () => {
+    let blob: Blob | undefined
+    const wrapper = mount(
+      provider(() =>
+        h(PdfViewer, { document: ThemedDoc, onRendered: (result: { blob: Blob }) => (blob = result.blob) }),
+      ),
+    )
+    wrappers.push(wrapper)
+    await until(() => blob !== undefined)
+    expect(pdfText(new Uint8Array(await blob!.arrayBuffer()))).toContain('Theme: none')
   })
 })

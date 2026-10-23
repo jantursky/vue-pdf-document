@@ -12,5 +12,6 @@
     "vite.config.ts",
     "vitest.config.ts",
     "vitest.browser.config.ts"
-  ]
+  ],
+  "exclude": ["test/types"]
 }

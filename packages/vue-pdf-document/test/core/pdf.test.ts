@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { defineComponent, h, nextTick, onUnmounted, ref } from 'vue'
+import { defineComponent, h, inject, nextTick, onUnmounted, ref, resolveComponent, type App, type Component } from 'vue'
 
 import {
   Document,
@@ -281,3 +281,42 @@ describe('Font', () => {
     expect(Font.getRegisteredFontFamilies()).toEqual(expect.any(Array))
   })
 })
+
+describe('setup option', () => {
+  const Company = defineComponent(() => {
+    const company = inject('company', 'nobody')
+    return () => h(Text, null, () => `By ${company}`)
+  })
+
+  it('provides values to the document', async () => {
+    const bytes = await renderToBuffer(
+      singlePage(() => h(Company)),
+      undefined,
+      {
+        setup: (app) => app.provide('company', 'Acme'),
+      },
+    )
+    expect(pdfText(bytes)).toContain('By Acme')
+  })
+
+  it('installs plugins that register global components', async () => {
+    const plugin = { install: (app: App) => app.component('GreetingText', singleText('Hello from a plugin')) }
+    const Doc = singlePage(() => h(resolveComponent('GreetingText') as Component))
+    const instance = pdf(Doc, undefined, { setup: (app) => app.use(plugin) })
+    expect(pdfText(await instance.toBuffer())).toContain('Hello from a plugin')
+    instance.unmount()
+  })
+
+  it('gives components returned from a render slot the same context', async () => {
+    const Doc = singlePage(() => [h(Text, null, () => 'Body'), h(Text, { fixed: true, render: () => h(Company) })])
+    const bytes = await renderToBlob(Doc, undefined, { setup: (app) => app.provide('company', 'Footer Inc') })
+    expect(pdfText(new Uint8Array(await bytes.arrayBuffer()))).toContain('By Footer Inc')
+  })
+
+  it('leaves render slot content without a provider isolated', async () => {
+    const Doc = singlePage(() => h(Text, { render: () => h(Company) }))
+    expect(pdfText(await renderToBuffer(Doc))).toContain('By nobody')
+  })
+})
+
+const singleText = (text: string) => defineComponent(() => () => h(Text, null, () => text))

@@ -2,10 +2,10 @@
 import './fonts'
 
 import QRCode from 'qrcode'
-import { computed, reactive, ref, watch } from 'vue'
+import { computed, provide, reactive, ref, watch } from 'vue'
 import { usePdf } from 'vue-pdf-document'
 
-import { formatters } from './i18n'
+import { formatters, labels, labelsKey } from './i18n'
 import InvoiceTemplate from './InvoiceTemplate.vue'
 import { blankInvoice, isInvoice, sampleInvoice, type Invoice } from './model'
 import PartyFields from './PartyFields.vue'
@@ -67,8 +67,15 @@ watch(
 )
 
 // One render feeds both the preview and the download, instead of a viewer and a link
-// rendering the same invoice twice.
-const { blob, url, loading, error } = usePdf(InvoiceTemplate, () => ({ invoice, qr: qr.value }), { debounce: 300 })
+// rendering the same invoice twice. The template injects its labels from here.
+provide(
+  labelsKey,
+  computed(() => labels[invoice.language]),
+)
+const { blob, url, loading, error } = usePdf(InvoiceTemplate, () => ({ invoice, qr: qr.value }), {
+  debounce: 300,
+  inheritContext: true,
+})
 const fileName = computed(() => `invoice-${invoice.number || 'draft'}.pdf`)
 const size = computed(() => (blob.value ? `${(blob.value.size / 1024).toFixed(0)} kB` : ''))
 

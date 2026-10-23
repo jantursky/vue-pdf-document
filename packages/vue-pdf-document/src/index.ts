@@ -25,7 +25,7 @@ export {
 } from './components/primitives'
 export { default as PdfViewer } from './components/PdfViewer.vue'
 export { default as PdfDownloadLink } from './components/PdfDownloadLink.vue'
-export { usePdf, type UsePdfOptions, type UsePdfReturn } from './composables/usePdf'
+export { usePdf, type UsePdfArgs, type UsePdfOptions, type UsePdfReturn } from './composables/usePdf'
 export {
   Font,
   pdf,
@@ -34,13 +34,36 @@ export {
   renderToBuffer,
   renderToStream,
   StyleSheet,
+  type PdfArgs,
   type PdfInstance,
+  type PdfOptions,
+  type RenderArgs,
   type RenderOptions,
   type RenderPhase,
 } from './core/pdf'
 export type {
   BaseProps,
+  CanvasGradient,
+  CanvasPainter,
+  CanvasProps,
+  CircleProps,
+  ClipPathProps,
+  DefsProps,
+  EllipseProps,
+  GProps,
+  LinearGradientProps,
+  LineProps,
+  PathProps,
+  PolygonProps,
+  PolylineProps,
+  RadialGradientProps,
+  RectProps,
+  StopProps,
+  SvgElementProps,
+  SVGPresentationAttributes,
+  TspanProps,
   DocumentProps,
+  DocumentPropsOf,
   DynamicProps,
   ImageProps,
   LinkProps,

@@ -1,7 +1,19 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { defineComponent, h } from 'vue'
 
-import { Document, Image, Link, Page, Rect, renderToBuffer, Svg, Text, View } from '../../src'
+import {
+  Canvas,
+  Document,
+  Image,
+  Link,
+  Page,
+  Rect,
+  renderToBuffer,
+  Svg,
+  Text,
+  View,
+  type CanvasPainter,
+} from '../../src'
 import { pageCount, pdfText, singlePage } from '../fixtures'
 
 // A 1×1 red PNG.
@@ -34,6 +46,18 @@ describe('react-pdf features through the Vue renderer', () => {
       ),
     )
     expect(withRect.length).toBeGreaterThan(empty.length)
+  })
+
+  it('paints a canvas with the box size and a chainable painter', async () => {
+    const paint = vi.fn((painter: CanvasPainter, width: number, height: number) => {
+      painter.save().moveTo(0, 0).lineTo(width, height).lineWidth(2).stroke('#0d9488').restore()
+    })
+    const empty = await renderToBuffer(singlePage(() => h(Canvas, { style: { width: 120, height: 80 } })))
+    const painted = await renderToBuffer(
+      singlePage(() => h(Canvas, { paint, style: { width: 120, height: 80, padding: 10 } })),
+    )
+    expect(paint).toHaveBeenCalledWith(expect.any(Object), 100, 60)
+    expect(painted.length).toBeGreaterThan(empty.length)
   })
 
   it('adds bookmarks to the outline', async () => {

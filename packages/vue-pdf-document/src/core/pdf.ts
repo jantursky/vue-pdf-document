@@ -6,9 +6,9 @@ import FontStore from '@react-pdf/font'
 import layoutDocument from '@react-pdf/layout'
 import renderPDF from '@react-pdf/render'
 import PDFDocument from 'pdfkit'
-import { h, toValue, type Component, type MaybeRefOrGetter } from 'vue'
+import { h, toValue, type App, type AppContext, type Component, type MaybeRefOrGetter } from 'vue'
 
-import type { RenderInfo, Style } from '../components/types'
+import type { DocumentPropsOf, PropsOptional, RenderInfo, Style } from '../components/types'
 import { createRoot, type PdfRoot, type Props } from './nodes'
 import { renderer } from './renderer'
 import { snapshot, type LayoutNode } from './snapshot'
@@ -36,6 +36,11 @@ export const StyleSheet = {
 export interface RenderOptions {
   /** Aborts the render. The call then rejects with a `DOMException` named `AbortError`. */
   signal?: AbortSignal
+}
+
+export interface PdfOptions {
+  /** Called with the document's Vue app before it mounts, to install plugins or provide values. */
+  setup?: (app: App) => void
 }
 
 /** The step a render failed in: building the layout input, laying it out, or writing the PDF. */
@@ -163,11 +168,16 @@ const writePdf = (doc: LayoutNode, laidOut: LayoutNode, onChunk: (chunk: Uint8Ar
   })
 
 /** Snapshots, lays out and writes `root`, checking `signal` between the steps. Resolves to the page count. */
-const run = async (root: PdfRoot, onChunk: (chunk: Uint8Array) => void, signal?: AbortSignal): Promise<number> => {
+const run = async (
+  root: PdfRoot,
+  context: AppContext,
+  onChunk: (chunk: Uint8Array) => void,
+  signal?: AbortSignal,
+): Promise<number> => {
   checkpoint(signal)
   let doc: LayoutNode
   try {
-    doc = snapshot(root)
+    doc = snapshot(root, context)
   } catch (error) {
     return wrap('snapshot')(error)
   }
@@ -188,25 +198,37 @@ const concat = (chunks: Uint8Array[]): Uint8Array => {
   return result
 }
 
-/**
- * Mounts `document` with the PDF renderer and returns a handle to render it. The
- * component must render a `<Document>`. Props are read through `toValue`, so a ref or
- * getter keeps the tree in sync with the data and `onChange` fires when it moves.
- */
-export const pdf = (document: Component, props?: MaybeRefOrGetter<Props | undefined>): PdfInstance => {
+/** `pdf()`'s arguments after the document: props are required when the document requires some. */
+export type PdfArgs<C> =
+  PropsOptional<C> extends true
+    ? [props?: MaybeRefOrGetter<DocumentPropsOf<C> | undefined>, options?: PdfOptions]
+    : [props: MaybeRefOrGetter<DocumentPropsOf<C>>, options?: PdfOptions]
+
+/** The one-shot functions' arguments after the document. */
+export type RenderArgs<C> =
+  PropsOptional<C> extends true
+    ? [props?: DocumentPropsOf<C>, options?: RenderOptions & PdfOptions]
+    : [props: DocumentPropsOf<C>, options?: RenderOptions & PdfOptions]
+
+export const mountDocument = (
+  document: Component,
+  props?: MaybeRefOrGetter<Props | undefined>,
+  options: PdfOptions = {},
+): PdfInstance => {
   const root = createRoot()
   const listeners = new Set<() => void>()
   root.onChange = () => {
     for (const listener of [...listeners]) listener()
   }
   const app = renderer.createApp({ render: () => h(document, toValue(props)) })
+  options.setup?.(app)
   app.mount(root)
   let mounted = true
   let pageCount: number | null = null
 
   const renderRoot = async (onChunk: (chunk: Uint8Array) => void, signal?: AbortSignal): Promise<number> => {
     if (!mounted) throw new PdfRenderError('snapshot', new Error('This document was unmounted.'))
-    pageCount = await run(root, onChunk, signal)
+    pageCount = await run(root, app._context, onChunk, signal)
     return pageCount
   }
 
@@ -269,33 +291,44 @@ export const pdf = (document: Component, props?: MaybeRefOrGetter<Props | undefi
   }
 }
 
-const once = async <T>(document: Component, props: Props | undefined, use: (instance: PdfInstance) => Promise<T>) => {
-  const instance = pdf(document, props)
+/**
+ * Mounts `document` with the PDF renderer and returns a handle to render it. The
+ * component must render a `<Document>`. Props are read through `toValue`, so a ref or
+ * getter keeps the tree in sync with the data and `onChange` fires when it moves.
+ */
+export const pdf = <C extends Component>(document: C, ...[props, options]: PdfArgs<C>): PdfInstance =>
+  mountDocument(document, props, options)
+
+const once = async <T>(
+  document: Component,
+  [props, options]: [props?: unknown, options?: RenderOptions & PdfOptions],
+  use: (instance: PdfInstance, options?: RenderOptions) => Promise<T>,
+) => {
+  const instance = mountDocument(document, props as Props | undefined, options)
   try {
-    return await use(instance)
+    return await use(instance, options)
   } finally {
     instance.unmount()
   }
 }
 
 /** Renders `document` once to PDF bytes. Works in Node, workers and the browser. */
-export const renderToBuffer = (document: Component, props?: Props, options?: RenderOptions): Promise<Uint8Array> =>
-  once(document, props, (instance) => instance.toBuffer(options))
+export const renderToBuffer = <C extends Component>(document: C, ...args: RenderArgs<C>): Promise<Uint8Array> =>
+  once(document, args, (instance, options) => instance.toBuffer(options))
 
 /** Renders `document` once to a PDF `Blob`. */
-export const renderToBlob = (document: Component, props?: Props, options?: RenderOptions): Promise<Blob> =>
-  once(document, props, (instance) => instance.toBlob(options))
+export const renderToBlob = <C extends Component>(document: C, ...args: RenderArgs<C>): Promise<Blob> =>
+  once(document, args, (instance, options) => instance.toBlob(options))
 
 /**
  * Renders `document` once as a stream of PDF chunks. The document is unmounted when the
  * stream closes, fails or is cancelled. Convert it for Node with `Readable.fromWeb()`.
  */
-export const renderToStream = (
-  document: Component,
-  props?: Props,
-  options?: RenderOptions,
+export const renderToStream = <C extends Component>(
+  document: C,
+  ...[props, options]: RenderArgs<C>
 ): ReadableStream<Uint8Array> => {
-  const instance = pdf(document, props)
+  const instance = mountDocument(document, props, options)
   const reader = instance.toStream(options).getReader()
   return new ReadableStream<Uint8Array>({
     async pull(stream) {

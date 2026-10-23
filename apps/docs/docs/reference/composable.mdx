@@ -22,10 +22,11 @@ Mounts `document` with the PDF renderer, renders it, and renders again whenever 
 | `props`    | value, ref or getter of an object | Props for `document`, read reactively. |
 | `options`  | `UsePdfOptions`                   | See below.                             |
 
-| option     | type                                 |                                                                                                                    |
-| ---------- | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------ |
-| `debounce` | `number`                             | Milliseconds to wait after the last change. `100` by default.                                                      |
-| `enabled`  | `boolean`, or a ref or getter of one | While `false`, nothing renders and a pending render is dropped. Turning it `true` renders once. `true` by default. |
+| option           | type                                 |                                                                                                                                                        |
+| ---------------- | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `debounce`       | `number`                             | Milliseconds to wait after the last change. `100` by default.                                                                                          |
+| `enabled`        | `boolean`, or a ref or getter of one | While `false`, nothing renders and a pending render is dropped. Turning it `true` renders once. `true` by default.                                     |
+| `inheritContext` | `boolean`                            | Let the document see what the calling component can inject, and the app's plugins. `false` by default. See [Sharing context](/guides/sharing-context). |
 
 | returns     | type                            |                                                                                                                                                                |
 | ----------- | ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |

@@ -1,14 +1,20 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, inject } from 'vue'
 import { Document, Image, Page, StyleSheet, Text, View } from 'vue-pdf-document'
 
-import { formatters, labels } from './i18n'
+import { formatters, labels, labelsKey } from './i18n'
 import type { Invoice, Party } from './model'
 import { computeTotals } from './totals'
 
 const props = defineProps<{ invoice: Invoice; qr: string | null }>()
 
-const t = computed(() => labels[props.invoice.language])
+// The generator provides the labels and renders with `inheritContext`. Rendered on its
+// own, the template falls back to the invoice's language.
+const t = inject(
+  labelsKey,
+  computed(() => labels[props.invoice.language]),
+  false,
+)
 const f = computed(() => formatters(props.invoice.language, props.invoice.currency))
 const totals = computed(() => computeTotals(props.invoice))
 const showVat = computed(() => props.invoice.vatPayer)

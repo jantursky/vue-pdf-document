@@ -1,14 +1,15 @@
-<script setup lang="ts">
+<script setup lang="ts" generic="C extends Component">
 import { computed, watch, type Component } from 'vue'
 
 import { usePdf } from '../composables/usePdf'
+import type { DocumentPropsOf } from './types'
 
 const props = withDefaults(
   defineProps<{
     /** A component that renders a `<Document>`. Read once, at setup. */
-    document: Component
-    /** Props for `document`. Changes render the file again. */
-    documentProps?: Record<string, unknown>
+    document: C
+    /** Props for `document`, checked against the props it declares. Changes render the file again. */
+    documentProps?: DocumentPropsOf<C>
     /** Accessible name of the frame. */
     title?: string
     debounce?: number
@@ -20,8 +21,10 @@ const props = withDefaults(
     zoom?: number | 'page-fit' | 'page-width'
     /** Show or hide the browser's viewer toolbar. Browsers that don't support it ignore it. */
     toolbar?: boolean
+    /** Let the document see what this component can inject, and the app's plugins. */
+    inheritContext?: boolean
   }>(),
-  { title: 'PDF preview', debounce: 100, enabled: true, toolbar: undefined },
+  { title: 'PDF preview', debounce: 100, enabled: true, toolbar: undefined, inheritContext: false },
 )
 
 const emit = defineEmits<{
@@ -36,9 +39,10 @@ defineSlots<{
 }>()
 
 // The document is read once; `documentProps` stays reactive through the getter.
-const { url, blob, pageCount, loading, error } = usePdf(props.document, () => props.documentProps, {
+const { url, blob, pageCount, loading, error } = usePdf(props.document as Component, () => props.documentProps, {
   debounce: props.debounce,
   enabled: () => props.enabled,
+  inheritContext: props.inheritContext,
 })
 
 watch(blob, (next) => {
