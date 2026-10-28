@@ -1,4 +1,6 @@
-<p align="center"><img src="https://raw.githubusercontent.com/jantursky/vue-pdf-document/main/apps/docs/public/icon.svg" alt="" width="64" height="64" /></p>
+<p align="center">
+  <img src="https://raw.githubusercontent.com/jantursky/vue-pdf-document/main/.github/assets/banner.svg" alt="Vue PDF Document: pdf files from vue 3 components" width="420">
+</p>
 
 # vue-pdf-document
 
