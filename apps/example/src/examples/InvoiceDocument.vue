@@ -1,6 +1,17 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Document, Page, StyleSheet, Text, View } from 'vue-pdf-document'
+import {
+  Document,
+  Page,
+  PageNumber,
+  StyleSheet,
+  Table,
+  TableCell,
+  TableHeader,
+  TableRow,
+  Text,
+  View,
+} from 'vue-pdf-document'
 
 import type { InvoiceItem } from './invoice'
 
@@ -14,10 +25,9 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 32 },
   title: { fontSize: 24, fontFamily: 'Helvetica-Bold' },
   muted: { color: '#6b7280' },
-  row: { flexDirection: 'row', paddingVertical: 6, borderBottom: '1pt solid #e5e7eb' },
-  head: { fontFamily: 'Helvetica-Bold', borderBottom: '1pt solid #111827' },
-  name: { flexGrow: 1 },
-  cell: { width: 70, textAlign: 'right' },
+  head: { fontFamily: 'Helvetica-Bold', backgroundColor: '#f3f4f6' },
+  cell: { paddingVertical: 6 },
+  pageNumber: { position: 'absolute', bottom: 40, left: 40, fontSize: 9, color: '#6b7280' },
   total: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
@@ -51,24 +61,29 @@ const styles = StyleSheet.create({
         </View>
       </View>
 
-      <View :style="[styles.row, styles.head]">
-        <Text :style="styles.name">Item</Text>
-        <Text :style="styles.cell">Qty</Text>
-        <Text :style="styles.cell">Price</Text>
-        <Text :style="styles.cell">Amount</Text>
-      </View>
-      <View v-for="item in items" :key="item.id" :style="styles.row" :wrap="false">
-        <Text :style="styles.name">{{ item.name }}</Text>
-        <Text :style="styles.cell">{{ item.quantity }}</Text>
-        <Text :style="styles.cell">{{ money(item.price) }}</Text>
-        <Text :style="styles.cell">{{ money(item.quantity * item.price) }}</Text>
-      </View>
+      <Table :columns="['auto', 70, 70, 70]" striped>
+        <TableHeader :style="styles.head">
+          <TableRow>
+            <TableCell :style="styles.cell">Item</TableCell>
+            <TableCell align="right" :style="styles.cell">Qty</TableCell>
+            <TableCell align="right" :style="styles.cell">Price</TableCell>
+            <TableCell align="right" :style="styles.cell">Amount</TableCell>
+          </TableRow>
+        </TableHeader>
+        <TableRow v-for="item in items" :key="item.id">
+          <TableCell :style="styles.cell">{{ item.name }}</TableCell>
+          <TableCell align="right" :style="styles.cell">{{ item.quantity }}</TableCell>
+          <TableCell align="right" :style="styles.cell">{{ money(item.price) }}</TableCell>
+          <TableCell align="right" :style="styles.cell">{{ money(item.quantity * item.price) }}</TableCell>
+        </TableRow>
+      </Table>
 
       <View :style="styles.total">
         <Text>Total {{ money(total) }}</Text>
       </View>
 
       <Text v-if="paid" :style="styles.stamp">PAID</Text>
+      <PageNumber format="Page {page} of {total}" :style="styles.pageNumber" />
     </Page>
   </Document>
 </template>

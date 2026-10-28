@@ -68,6 +68,16 @@ export default defineConfig(
   },
 
   {
+    files: ['packages/*/src/components/**/*.ts'],
+    rules: {
+      // These components are imported by name, and Table, Row and Cell share state, so they live in one file.
+      'vue/multi-word-component-names': 'off',
+      'vue/no-reserved-component-names': 'off',
+      'vue/one-component-per-file': 'off',
+    },
+  },
+
+  {
     files: ['**/test/**/*.ts'],
     rules: {
       // Tests assert on values they just built; non-null assertions keep them short.

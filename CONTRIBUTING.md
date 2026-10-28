@@ -33,7 +33,7 @@ bun run dev                                       # demo app, reading the librar
 bun run check          # samples in sync, format, lint, typecheck, unit tests with coverage
 bun run test:browser   # rendering in Chromium, Firefox and WebKit
 bun run test:e2e       # builds the demo and drives it with Playwright
-bun run build          # fails over the 6 kB size budget
+bun run build          # fails over the 7.5 kB size budget
 bun run lint:package && bun run test:pack   # after build: publint, types, install the tarball
 ```
 

@@ -1,6 +1,17 @@
 <script setup lang="ts">
 import { computed, inject } from 'vue'
-import { Document, Image, Page, StyleSheet, Text, View } from 'vue-pdf-document'
+import {
+  Document,
+  Image,
+  Page,
+  StyleSheet,
+  Table,
+  TableCell,
+  TableHeader,
+  TableRow,
+  Text,
+  View,
+} from 'vue-pdf-document'
 
 import { formatters, labels, labelsKey } from './i18n'
 import type { Invoice, Party } from './model'
@@ -46,6 +57,9 @@ const meta = computed(() =>
   ].filter(([, value]) => value),
 )
 
+// Index, item, quantity, unit, unit price, discount, VAT rate (VAT payers only), amount.
+const columns = computed(() => [18, 'auto' as const, 44, 30, 62, 34, ...(showVat.value ? [34] : []), 70])
+
 const showBank = computed(
   () => props.invoice.payment.method === 'transfer' && (props.invoice.payment.iban || props.invoice.payment.bankName),
 )
@@ -79,17 +93,9 @@ const styles = StyleSheet.create({
   bankText: { flex: 1 },
   qr: { width: 64, height: 64 },
   qrCaption: { fontSize: 6.5, color: '#6b7280', textAlign: 'center', marginTop: 2 },
-  tableHead: { flexDirection: 'row', paddingVertical: 6, paddingHorizontal: 6, color: '#ffffff', fontWeight: 500 },
-  row: { flexDirection: 'row', paddingVertical: 5, paddingHorizontal: 6, borderBottom: '0.5pt solid #e5e7eb' },
-  zebra: { backgroundColor: '#f9fafb' },
-  colIndex: { width: 18, color: '#9ca3af' },
-  colDescription: { flex: 1, paddingRight: 6 },
-  colQuantity: { width: 44, textAlign: 'right' },
-  colUnit: { width: 30, paddingLeft: 6 },
-  colPrice: { width: 62, textAlign: 'right' },
-  colDiscount: { width: 34, textAlign: 'right' },
-  colVat: { width: 34, textAlign: 'right' },
-  colAmount: { width: 70, textAlign: 'right' },
+  tableHead: { color: '#ffffff', fontWeight: 500 },
+  row: { borderBottom: '0.5pt solid #e5e7eb' },
+  cell: { paddingVertical: 5, paddingHorizontal: 3 },
   summary: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginTop: 16 },
   recap: { width: 250 },
   recapRow: { flexDirection: 'row', paddingVertical: 3, borderBottom: '0.5pt solid #e5e7eb' },
@@ -186,34 +192,30 @@ const styles = StyleSheet.create({
         </View>
       </View>
 
-      <View>
-        <!-- Fixed inside the table's own view, so it repeats at the top of every page the table spans. -->
-        <View :style="[styles.tableHead, { backgroundColor: accent }]" fixed>
-          <Text :style="styles.colIndex">#</Text>
-          <Text :style="styles.colDescription">{{ t.item }}</Text>
-          <Text :style="styles.colQuantity">{{ t.quantity }}</Text>
-          <Text :style="styles.colUnit">{{ t.unit }}</Text>
-          <Text :style="styles.colPrice">{{ t.unitPrice }}</Text>
-          <Text :style="styles.colDiscount">{{ t.discount }}</Text>
-          <Text v-if="showVat" :style="styles.colVat">{{ t.vatRate }}</Text>
-          <Text :style="styles.colAmount">{{ t.amount }}</Text>
-        </View>
-        <View
-          v-for="(item, index) in invoice.items"
-          :key="item.id"
-          :style="[styles.row, index % 2 === 1 && styles.zebra]"
-          :wrap="false"
-        >
-          <Text :style="styles.colIndex">{{ index + 1 }}</Text>
-          <Text :style="styles.colDescription">{{ item.description }}</Text>
-          <Text :style="styles.colQuantity">{{ f.number(item.quantity) }}</Text>
-          <Text :style="styles.colUnit">{{ item.unit }}</Text>
-          <Text :style="styles.colPrice">{{ f.money(item.unitPrice) }}</Text>
-          <Text :style="styles.colDiscount">{{ item.discount ? f.percent(item.discount) : '' }}</Text>
-          <Text v-if="showVat" :style="styles.colVat">{{ f.percent(item.vatRate) }}</Text>
-          <Text :style="styles.colAmount">{{ f.money(totals.lines[index] ?? 0) }}</Text>
-        </View>
-      </View>
+      <Table :columns="columns" striped>
+        <TableHeader :style="{ backgroundColor: accent }">
+          <TableRow :style="styles.tableHead">
+            <TableCell :style="styles.cell">#</TableCell>
+            <TableCell :style="styles.cell">{{ t.item }}</TableCell>
+            <TableCell align="right" :style="styles.cell">{{ t.quantity }}</TableCell>
+            <TableCell :style="styles.cell">{{ t.unit }}</TableCell>
+            <TableCell align="right" :style="styles.cell">{{ t.unitPrice }}</TableCell>
+            <TableCell align="right" :style="styles.cell">{{ t.discount }}</TableCell>
+            <TableCell v-if="showVat" align="right" :style="styles.cell">{{ t.vatRate }}</TableCell>
+            <TableCell align="right" :style="styles.cell">{{ t.amount }}</TableCell>
+          </TableRow>
+        </TableHeader>
+        <TableRow v-for="(item, index) in invoice.items" :key="item.id" :style="styles.row">
+          <TableCell :style="[styles.cell, styles.muted]">{{ index + 1 }}</TableCell>
+          <TableCell :style="styles.cell">{{ item.description }}</TableCell>
+          <TableCell align="right" :style="styles.cell">{{ f.number(item.quantity) }}</TableCell>
+          <TableCell :style="styles.cell">{{ item.unit }}</TableCell>
+          <TableCell align="right" :style="styles.cell">{{ f.money(item.unitPrice) }}</TableCell>
+          <TableCell align="right" :style="styles.cell">{{ item.discount ? f.percent(item.discount) : '' }}</TableCell>
+          <TableCell v-if="showVat" align="right" :style="styles.cell">{{ f.percent(item.vatRate) }}</TableCell>
+          <TableCell align="right" :style="styles.cell">{{ f.money(totals.lines[index] ?? 0) }}</TableCell>
+        </TableRow>
+      </Table>
 
       <View :style="styles.summary" :wrap="false">
         <View :style="styles.recap">

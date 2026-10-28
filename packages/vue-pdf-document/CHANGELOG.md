@@ -4,6 +4,13 @@ All notable changes to `vue-pdf-document` are listed here. The format follows [K
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-10-28
+
+### Added
+
+- `Table`, `TableHeader`, `TableRow` and `TableCell`: a table with a header that repeats on every page it spans, rows that stay whole, `columns` in points, percentages or `auto`, `border`, `striped` and per-cell `align`.
+- `PageNumber`: a fixed `Text` that shows `{page}` and `{total}` through `format`, or through its default slot.
+
 ## [1.2.1] - 2026-10-23
 
 ### Changed
@@ -84,6 +91,7 @@ The first stable version.
 - An invoice generator in the demo app, on its own tab: VAT per rate, discounts, reverse charge, an EPC payment QR code, a logo, English and Slovak, and JSON export and import.
 
 [Unreleased]: https://www.npmjs.com/package/vue-pdf-document
+[1.3.0]: https://www.npmjs.com/package/vue-pdf-document/v/1.3.0
 [1.2.1]: https://www.npmjs.com/package/vue-pdf-document/v/1.2.1
 [1.2.0]: https://www.npmjs.com/package/vue-pdf-document/v/1.2.0
 [1.1.0]: https://www.npmjs.com/package/vue-pdf-document/v/1.1.0

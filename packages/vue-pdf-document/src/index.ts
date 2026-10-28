@@ -23,6 +23,16 @@ export {
   Tspan,
   View,
 } from './components/primitives'
+export { PageNumber, type PageNumberProps } from './components/layout/PageNumber'
+export {
+  Table,
+  TableCell,
+  TableHeader,
+  TableRow,
+  type TableAlign,
+  type TableBorder,
+  type TableColumn,
+} from './components/layout/Table'
 export { default as PdfViewer } from './components/PdfViewer.vue'
 export { default as PdfDownloadLink } from './components/PdfDownloadLink.vue'
 export { usePdf, type UsePdfArgs, type UsePdfOptions, type UsePdfReturn } from './composables/usePdf'

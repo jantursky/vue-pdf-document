@@ -1,0 +1,74 @@
+---
+title: Tables and page numbers
+description: Tables with a header that repeats on every page, rows that stay whole, and "Page 2 of 5" footers.
+---
+
+`Table`, `TableHeader`, `TableRow`, `TableCell` and `PageNumber` are plain components built from `View` and `Text`. They add no renderer features: you could write them yourself with `fixed` and `:wrap="false"`, and these save the 40 lines. Each one takes `style`, merged after its defaults.
+
+## A table
+
+```vue
+<script setup lang="ts">
+import { Document, Page, Table, TableCell, TableHeader, TableRow } from 'vue-pdf-document'
+
+defineProps<{ items: { id: number; name: string; qty: number; price: string }[] }>()
+</script>
+
+<template>
+  <Document>
+    <Page size="A4" :style="{ padding: 40, fontSize: 11 }">
+      <Table :columns="['auto', 60, 80]" striped border>
+        <TableHeader>
+          <TableRow>
+            <TableCell>Item</TableCell>
+            <TableCell align="right">Qty</TableCell>
+            <TableCell align="right">Price</TableCell>
+          </TableRow>
+        </TableHeader>
+        <TableRow v-for="item in items" :key="item.id">
+          <TableCell>{{ item.name }}</TableCell>
+          <TableCell align="right">{{ item.qty }}</TableCell>
+          <TableCell align="right">{{ item.price }}</TableCell>
+        </TableRow>
+      </Table>
+    </Page>
+  </Document>
+</template>
+```
+
+Text written directly inside a `TableCell` is wrapped in a `Text`. For anything richer, put your own `Text`, `Image` or `View` inside.
+
+## Columns
+
+`columns` sizes the cells of every row by position. A number is a width in points, a percentage string such as `'20%'` is a share of the table width, and `'auto'` is an equal share of what is left. In a 500 pt table, `[100, '20%', 'auto', 'auto']` gives cells of 100, 100, 150 and 150 pt. A row with fewer cells than columns leaves the rest empty.
+
+A cell takes the next column after the previous one, so a cell hidden with `v-if` shifts the ones after it left. To keep a cell in its column, set `column` (zero-based) on it.
+
+## Header and page breaks
+
+`TableHeader` is drawn at the top of the table on every page the table spans. Use `:repeat="false"` to show it on the first page only.
+
+Rows stay whole: a row that doesn't fit moves to the next page. Use `:wrap="true"` on a `TableRow` to let a tall row split.
+
+## Borders and stripes
+
+`border` takes a width, or `{ width, color }`, and draws around the table and between rows and cells. `striped` gives every second body row a background; the header doesn't count. To change the colors, pass a `style` to the row or cell, which overrides the defaults.
+
+## Page numbers
+
+`PageNumber` is a fixed `Text` that fills `{page}` and `{total}` on every page. It takes every `Text` prop.
+
+```vue
+<PageNumber :style="{ position: 'absolute', bottom: 24, right: 40, fontSize: 9 }" />
+<PageNumber format="Page {page} of {total}" />
+```
+
+For anything else, such as a localized sentence, use the default slot:
+
+```vue
+<PageNumber v-slot="{ pageNumber, totalPages }">{{ t.page(pageNumber, totalPages) }}</PageNumber>
+```
+
+## Limits
+
+There is no `colspan` or `rowspan`, and no data-driven table: `v-for` over your own rows already does that.

@@ -6,6 +6,7 @@ export default defineMeta({
   pages: [
     'templates',
     'styling',
+    'tables',
     'images-and-links',
     'fonts',
     'loading-on-demand',

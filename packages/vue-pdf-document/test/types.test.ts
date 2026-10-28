@@ -29,6 +29,9 @@ import {
   type Text,
   type Style,
   type UsePdfReturn,
+  type PageNumber,
+  type Table,
+  type TableCell,
   type View,
 } from '../src'
 import Invoice from './fixtures/Invoice.vue'
@@ -43,6 +46,14 @@ describe('public types', () => {
 
     // @ts-expect-error orientation is portrait or landscape
     expectTypeOf<PropsOf<typeof Page>['orientation']>().toEqualTypeOf<'sideways' | undefined>()
+  })
+
+  it('types the layout components', () => {
+    expectTypeOf<PropsOf<typeof PageNumber>['format']>().toEqualTypeOf<string | undefined>()
+    expectTypeOf<PropsOf<typeof PageNumber>['orphans']>().toEqualTypeOf<number | undefined>()
+    expectTypeOf<PropsOf<typeof Table>['striped']>().toEqualTypeOf<boolean | undefined>()
+    expectTypeOf<PropsOf<typeof TableCell>['align']>().toEqualTypeOf<'left' | 'center' | 'right' | undefined>()
+    expectTypeOf<PropsOf<typeof Table>['columns']>().toEqualTypeOf<(number | `${number}%` | 'auto')[] | undefined>()
   })
 
   it('keeps style literals narrow in StyleSheet.create', () => {

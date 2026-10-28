@@ -13,7 +13,24 @@
       "pdfkit"
     ],
     "gzip": true,
-    "limit": "6 kB"
+    "limit": "7.5 kB"
+  },
+  {
+    "name": "Layout components (PageNumber, Table*) on top of the library",
+    "path": "dist/index.js",
+    "import": "{ PageNumber, Table, TableHeader, TableRow, TableCell }",
+    "ignore": [
+      "vue",
+      "@react-pdf/fns",
+      "@react-pdf/font",
+      "@react-pdf/layout",
+      "@react-pdf/primitives",
+      "@react-pdf/render",
+      "@react-pdf/types",
+      "pdfkit"
+    ],
+    "gzip": true,
+    "limit": "2.5 kB"
   },
   {
     "name": "With the layout engine, as a browser app ships it",

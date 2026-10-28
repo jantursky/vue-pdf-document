@@ -33,6 +33,18 @@ Every primitive also accepts:
 
 `Text` and `View` take a `render` slot, called with `{ pageNumber, totalPages }` during pagination. See [Page numbers](/guides/templates#page-numbers).
 
+## Layout components
+
+Built from the primitives. They are tree-shaken when you don't import them. See [Tables and page numbers](/guides/tables).
+
+| component     | props                                                                                                                                                             |
+| ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `PageNumber`  | `format` (`'{page} / {total}'` by default) or a default slot called with `{ pageNumber, totalPages }`. A fixed `Text`: takes every `Text` prop.                   |
+| `Table`       | `columns` (numbers in points, `'20%'` strings or `'auto'`), `border` (a width or `{ width, color }`), `striped`, `style`                                          |
+| `TableHeader` | `repeat` (`true` by default: drawn at the top of every page the table spans), `style`                                                                             |
+| `TableRow`    | `wrap` (`false` by default: the row moves to the next page instead of splitting), `style`                                                                         |
+| `TableCell`   | `align` (`left`, `center`, `right`), `column` (zero-based; defaults to the next column in the row), `style`. Text written directly inside is wrapped in a `Text`. |
+
 ## PdfViewer
 
 Renders the document into an `<iframe>` and keeps it current.
