@@ -42,6 +42,7 @@ export {
   PdfRenderError,
   renderToBlob,
   renderToBuffer,
+  renderToLayout,
   renderToStream,
   StyleSheet,
   type PdfArgs,
@@ -51,6 +52,15 @@ export {
   type RenderOptions,
   type RenderPhase,
 } from './core/pdf'
+export {
+  findById,
+  findByText,
+  type Layout,
+  type LayoutBox,
+  type LayoutItem,
+  type LayoutMatch,
+  type LayoutPage,
+} from './core/inspect'
 export type {
   BaseProps,
   CanvasGradient,

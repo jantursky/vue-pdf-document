@@ -4,11 +4,13 @@ import { defineComponent, h } from 'vue'
 import {
   Canvas,
   Document,
+  findByText,
   Image,
   Link,
   Page,
   Rect,
   renderToBuffer,
+  renderToLayout,
   Svg,
   Text,
   View,
@@ -75,10 +77,11 @@ describe('react-pdf features through the Vue renderer', () => {
   })
 
   it('breaks onto a new page with the break flag', async () => {
-    const bytes = await renderToBuffer(
+    const layout = await renderToLayout(
       singlePage(() => [h(Text, null, () => 'First'), h(View, { break: true }, () => h(Text, null, () => 'Second'))]),
     )
-    expect(pageCount(bytes)).toBe(2)
+    expect(layout).toHaveLength(2)
+    expect(findByText(layout, 'Second')[0]!.pageNumber).toBe(2)
   })
 
   it('encrypts the file when a user password is set', async () => {

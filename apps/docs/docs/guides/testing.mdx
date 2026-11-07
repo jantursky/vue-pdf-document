@@ -1,0 +1,77 @@
+---
+title: Testing documents
+description: Assert where things land on a page without writing a PDF, using toLayout(), findByText() and findById().
+---
+
+Testing a PDF usually means rendering bytes and parsing them back, which is slow and only tells you that some text is _somewhere_ in the file. `renderToLayout()` runs the same layout engine with the same fonts and stops before the PDF is written. It resolves to plain data: pages, and for each element its type, `box` and text.
+
+```ts
+import { findById, findByText, renderToLayout } from 'vue-pdf-document'
+import { expect, it } from 'vitest'
+
+import InvoiceDocument from './InvoiceDocument.vue'
+
+it('puts the total on the last page', async () => {
+  const layout = await renderToLayout(InvoiceDocument, { items })
+
+  const [total] = findByText(layout, /^Total/)
+  expect(total.pageNumber).toBe(layout.length)
+})
+```
+
+## The shape
+
+```ts
+type Layout = LayoutPage[]
+
+interface LayoutPage {
+  pageNumber: number // 1-based
+  width: number // points
+  height: number
+  nodes: LayoutItem[] // top-level elements, in document order
+}
+
+interface LayoutItem {
+  type: string // 'VIEW', 'TEXT', 'IMAGE', ...
+  id?: string // the element's `id` prop
+  box: { left: number; top: number; width: number; height: number } // points, relative to the page
+  text?: string // text elements: laid-out lines joined with '\n'
+  children: LayoutItem[]
+}
+```
+
+- `box` is always relative to the page's top-left corner, however deeply the element is nested. Values are rounded to 0.01 pt.
+- `text` is only set on `Text` elements. Nested `Text` content is flattened into it, and a wrapped paragraph keeps its line breaks, so you can see where it wrapped.
+- A `fixed` element appears once on every page it is drawn on, because the tree mirrors what's drawn.
+- Absolutely positioned elements stay in document order, not visual order.
+- The result is JSON-serializable, so `expect(layout).toMatchSnapshot()` works. Prefer asserting relations over exact numbers, as the engine can move things by fractions of a point between versions.
+
+## Finding things
+
+`findByText(layout, query)` returns every text element whose `text` contains the string or matches the RegExp. `findById(layout, id)` returns every element with that `id`. Both return the elements with their `pageNumber`, in page and document order, and an empty array when nothing matches.
+
+```ts
+const layout = await renderToLayout(ReportDocument, { sections })
+
+// the header repeats on every page
+const headers = findByText(layout, 'Item')
+expect(headers.map((node) => node.pageNumber)).toEqual(layout.map((page) => page.pageNumber))
+
+// nothing runs into the bottom margin
+for (const page of layout) {
+  for (const node of page.nodes) {
+    expect(node.box.top + node.box.height).toBeLessThanOrEqual(page.height - 40)
+  }
+}
+```
+
+## On an instance
+
+`pdf(document, props).toLayout()` does the same for a mounted document, so one instance can be laid out after its props change. It takes `{ signal }` like the other render methods, and it updates `pageCount`.
+
+```ts
+const instance = pdf(ReportDocument, () => ({ sections: sections.value }))
+const { length: pages } = await instance.toLayout()
+```
+
+Use it for a page count before you pay for the PDF step. Keep a real `toBuffer()` test for output features such as metadata, encryption, fonts and links, which the layout doesn't describe.

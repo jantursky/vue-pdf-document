@@ -1,6 +1,6 @@
 ---
 title: Functions
-description: pdf, renderToBlob, renderToBuffer, renderToStream, PdfRenderError, Font and StyleSheet.
+description: pdf, renderToBlob, renderToBuffer, renderToStream, renderToLayout, findByText, findById, PdfRenderError, Font and StyleSheet.
 ---
 
 ## renderToBlob(document, props?, options?)
@@ -15,9 +15,17 @@ The same, resolving to a `Uint8Array`. It needs no DOM, so it works in Node, wor
 
 The same, as a web `ReadableStream<Uint8Array>` that emits the file in chunks as it's written. The document is unmounted when the stream closes, fails or is cancelled. In Node, `Readable.fromWeb()` turns it into a Node stream.
 
+## renderToLayout(document, props?, options?)
+
+Lays the document out with the same engine and fonts, without writing a PDF, and resolves to a JSON-serializable list of pages. Each page has `pageNumber`, `width`, `height` and `nodes`; each node has `type`, `id` when set, a page-relative `box` in points, `text` for text elements and `children`. The page count equals that of a PDF render. See [Testing documents](/guides/testing).
+
+## findByText(layout, query) and findById(layout, id)
+
+Query helpers for the result of `renderToLayout()` or `toLayout()`. `findByText` returns every text node whose text contains the string or matches the RegExp, and `findById` every node with that `id`. Each match carries its `pageNumber`, in page and document order. No match gives `[]`.
+
 ## Options
 
-`renderToBlob()`, `renderToBuffer()`, `renderToStream()` and `pdf()` take `setup(app)`, called with the document's Vue app before it mounts, to install plugins or provide values. See [Sharing context](/guides/sharing-context).
+`renderToBlob()`, `renderToBuffer()`, `renderToStream()`, `renderToLayout()` and `pdf()` take `setup(app)`, called with the document's Vue app before it mounts, to install plugins or provide values. See [Sharing context](/guides/sharing-context).
 
 Every render function and method takes `{ signal }`, an `AbortSignal`:
 
@@ -40,6 +48,7 @@ const instance = pdf(InvoiceDocument, () => ({ customer: customer.value }))
 const blob = await instance.toBlob()
 const bytes = await instance.toBuffer()
 const stream = instance.toStream()
+const layout = await instance.toLayout() // pages and boxes, no PDF written
 console.log(instance.pageCount) // pages of the last finished render
 const stop = instance.onChange(() => console.log('the tree changed'))
 stop()
@@ -51,6 +60,7 @@ instance.unmount()
 | `toBlob(options?)`   | Lays out and renders the current tree. Calls `Document`'s `onRender` with `{ blob, pageCount }`.     |
 | `toBuffer(options?)` | The same, as bytes.                                                                                  |
 | `toStream(options?)` | The same, as a `ReadableStream<Uint8Array>`. Cancelling the stream aborts the render.                |
+| `toLayout(options?)` | Lays out the current tree without writing a PDF and resolves to its pages. Also updates `pageCount`. |
 | `pageCount`          | Pages of the last finished render, `null` before the first one. An aborted render doesn't change it. |
 | `onChange(fn)`       | Calls `fn` after Vue patches the tree. Returns a function that stops.                                |
 | `unmount()`          | Unmounts the app. Later renders reject.                                                              |

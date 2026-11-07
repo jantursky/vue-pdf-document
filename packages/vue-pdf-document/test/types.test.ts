@@ -8,6 +8,11 @@ import {
   PdfRenderError,
   renderToBlob,
   renderToBuffer,
+  renderToLayout,
+  findByText,
+  findById,
+  type Layout,
+  type LayoutMatch,
   renderToStream,
   StyleSheet,
   usePdf,
@@ -76,6 +81,16 @@ describe('public types', () => {
       { enabled: () => true },
     )
     expectTypeOf(renderToBuffer).toBeCallableWith(Invoice, { customer: 'Ada', items: [] })
+  })
+
+  it('types layout inspection', () => {
+    expectTypeOf(renderToLayout).returns.toEqualTypeOf<Promise<Layout>>()
+    expectTypeOf(renderToLayout).toBeCallableWith(Invoice, { customer: 'Ada', items: [] })
+    expectTypeOf<PdfInstance['toLayout']>().returns.toEqualTypeOf<Promise<Layout>>()
+    expectTypeOf(findByText).toBeCallableWith([], /total/i)
+    expectTypeOf(findByText).returns.toEqualTypeOf<LayoutMatch[]>()
+    expectTypeOf(findById).parameter(1).toBeString()
+    expectTypeOf<LayoutMatch['pageNumber']>().toBeNumber()
   })
 
   it('types render options, results and errors', () => {

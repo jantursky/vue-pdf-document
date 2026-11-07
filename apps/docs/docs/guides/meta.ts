@@ -11,6 +11,7 @@ export default defineMeta({
     'fonts',
     'loading-on-demand',
     'server',
+    'testing',
     'migrating-from-react-pdf',
     'troubleshooting',
   ],

@@ -88,7 +88,9 @@ The preview renders again, debounced, whenever the data the document reads chang
 | `renderToBlob(document, props?)`                                  | Renders once to a `Blob`.                                                                                                                     |
 | `renderToBuffer(document, props?)`                                | Renders once to a `Uint8Array`; works in Node and workers.                                                                                    |
 | `renderToStream(document, props?)`                                | Renders once to a web `ReadableStream` of PDF chunks.                                                                                         |
-| `pdf(document, props?)`                                           | The low-level handle: `toBlob()`, `toBuffer()`, `toStream()`, `pageCount`, `onChange()`, `unmount()`.                                         |
+| `renderToLayout(document, props?)`                                | Lays out without writing a PDF: pages, page-relative boxes and text, as plain data for tests.                                                 |
+| `findByText(layout, query)`, `findById(layout, id)`               | Find text or `id`'d nodes in a layout, with their `pageNumber`.                                                                               |
+| `pdf(document, props?)`                                           | The low-level handle: `toBlob()`, `toBuffer()`, `toStream()`, `toLayout()`, `pageCount`, `onChange()`, `unmount()`.                           |
 | `PdfRenderError`                                                  | What a failed render rejects with; `phase` names the step that failed.                                                                        |
 | `Font`, `StyleSheet`                                              | react-pdf's font store, and a typed identity helper for styles.                                                                               |
 

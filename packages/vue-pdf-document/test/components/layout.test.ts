@@ -1,7 +1,19 @@
 import { describe, expect, it } from 'vitest'
 import { defineComponent, h } from 'vue'
 
-import { Document, Page, PageNumber, renderToBuffer, Table, TableCell, TableHeader, TableRow, View } from '../../src'
+import {
+  Document,
+  findByText,
+  Page,
+  PageNumber,
+  renderToBuffer,
+  renderToLayout,
+  Table,
+  TableCell,
+  TableHeader,
+  TableRow,
+  View,
+} from '../../src'
 import { layoutBoxes, pageCount, pdfText } from '../fixtures'
 
 const doc = (page: () => unknown, size: [number, number] | string = [500, 300], padding = 0) =>
@@ -99,21 +111,21 @@ describe('Table', () => {
       )
 
     it('repeats the header above the first row of each page', async () => {
-      const boxes = await layoutBoxes(table())
-      const pages = new Set(boxes.map((box) => box.page))
-      expect(pages).toEqual(new Set([1, 2]))
-      for (const page of pages) {
-        const texts = boxes.filter((box) => box.page === page && box.type === 'TEXT')
-        const header = texts.find((box) => box.text === 'Name')!
-        expect(header, `header on page ${page}`).toBeDefined()
-        const firstRow = texts.filter((box) => box.text !== 'Name').sort((a, b) => a.y - b.y)[0]!
-        expect(header.y).toBeLessThan(firstRow.y)
+      const layout = await renderToLayout(table())
+      expect(layout.map((page) => page.pageNumber)).toEqual([1, 2])
+      for (const { pageNumber } of layout) {
+        const header = findByText(layout, 'Name').find((node) => node.pageNumber === pageNumber)
+        expect(header, `header on page ${pageNumber}`).toBeDefined()
+        const firstRow = findByText(layout, /^Row /)
+          .filter((node) => node.pageNumber === pageNumber)
+          .sort((a, b) => a.box.top - b.box.top)[0]!
+        expect(header!.box.top).toBeLessThan(firstRow.box.top)
       }
     })
 
     it('draws the header on the first page only with repeat off', async () => {
-      const boxes = await layoutBoxes(table(false))
-      expect(boxes.filter((box) => box.text === 'Name').map((box) => box.page)).toEqual([1])
+      const layout = await renderToLayout(table(false))
+      expect(findByText(layout, 'Name').map((node) => node.pageNumber)).toEqual([1])
     })
   })
 

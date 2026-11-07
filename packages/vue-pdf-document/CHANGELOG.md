@@ -4,6 +4,14 @@ All notable changes to `vue-pdf-document` are listed here. The format follows [K
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-11-07
+
+### Added
+
+- `renderToLayout()` and `PdfInstance.toLayout()`: lay a document out with the same engine and fonts, without writing a PDF, and get a JSON-serializable list of pages with page-relative boxes, ids and text.
+- `findByText()` and `findById()`: query a layout, each match carrying its `pageNumber`.
+- A "Testing documents" guide.
+
 ## [1.3.0] - 2026-10-28
 
 ### Added
@@ -91,6 +99,7 @@ The first stable version.
 - An invoice generator in the demo app, on its own tab: VAT per rate, discounts, reverse charge, an EPC payment QR code, a logo, English and Slovak, and JSON export and import.
 
 [Unreleased]: https://www.npmjs.com/package/vue-pdf-document
+[1.4.0]: https://www.npmjs.com/package/vue-pdf-document/v/1.4.0
 [1.3.0]: https://www.npmjs.com/package/vue-pdf-document/v/1.3.0
 [1.2.1]: https://www.npmjs.com/package/vue-pdf-document/v/1.2.1
 [1.2.0]: https://www.npmjs.com/package/vue-pdf-document/v/1.2.0

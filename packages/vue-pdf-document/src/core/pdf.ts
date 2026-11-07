@@ -11,6 +11,7 @@ import { h, toValue, type App, type AppContext, type Component, type MaybeRefOrG
 import type { DocumentPropsOf, PropsOptional, RenderInfo, Style } from '../components/types'
 import { createRoot, type PdfRoot, type Props } from './nodes'
 import { renderer } from './renderer'
+import { toLayoutPages, type Layout } from './inspect'
 import { snapshot, type LayoutNode } from './snapshot'
 
 let store: FontStore | undefined
@@ -66,6 +67,8 @@ export interface PdfInstance {
   toBuffer: (options?: RenderOptions) => Promise<Uint8Array>
   /** Renders the current tree as a stream of PDF chunks. Cancelling the stream aborts the render. */
   toStream: (options?: RenderOptions) => ReadableStream<Uint8Array>
+  /** Lays out the current tree without writing a PDF and resolves to its pages, boxes and text. */
+  toLayout: (options?: RenderOptions) => Promise<Layout>
   /** Pages of the last finished render, or `null` before the first one. */
   readonly pageCount: number | null
   /** Calls `listener` after Vue patches the tree, for example when a prop it reads changes. */
@@ -167,13 +170,12 @@ const writePdf = (doc: LayoutNode, laidOut: LayoutNode, onChunk: (chunk: Uint8Ar
     }
   })
 
-/** Snapshots, lays out and writes `root`, checking `signal` between the steps. Resolves to the page count. */
-const run = async (
+/** Snapshots and lays out `root`, checking `signal` between the steps. Shared by PDF renders and `toLayout`. */
+const layOut = async (
   root: PdfRoot,
   context: AppContext,
-  onChunk: (chunk: Uint8Array) => void,
   signal?: AbortSignal,
-): Promise<number> => {
+): Promise<{ doc: LayoutNode; laidOut: LayoutNode }> => {
   checkpoint(signal)
   let doc: LayoutNode
   try {
@@ -184,6 +186,17 @@ const run = async (
   checkpoint(signal)
   const laidOut = await untilAborted(layout(doc, fontStore()), signal).catch(wrap('layout'))
   checkpoint(signal)
+  return { doc, laidOut }
+}
+
+/** Snapshots, lays out and writes `root`. Resolves to the page count. */
+const run = async (
+  root: PdfRoot,
+  context: AppContext,
+  onChunk: (chunk: Uint8Array) => void,
+  signal?: AbortSignal,
+): Promise<number> => {
+  const { doc, laidOut } = await layOut(root, context, signal)
   await writePdf(doc, laidOut, onChunk, signal).catch(wrap('render'))
   return laidOut.children?.length ?? 0
 }
@@ -248,6 +261,12 @@ export const mountDocument = (
     },
     async toBuffer({ signal } = {}) {
       return concat((await toChunks(signal))[0])
+    },
+    async toLayout({ signal } = {}) {
+      if (!mounted) throw new PdfRenderError('snapshot', new Error('This document was unmounted.'))
+      const { laidOut } = await layOut(root, app._context, signal)
+      pageCount = laidOut.children?.length ?? 0
+      return toLayoutPages(laidOut)
     },
     toStream({ signal } = {}) {
       const controller = new AbortController()
@@ -319,6 +338,10 @@ export const renderToBuffer = <C extends Component>(document: C, ...args: Render
 /** Renders `document` once to a PDF `Blob`. */
 export const renderToBlob = <C extends Component>(document: C, ...args: RenderArgs<C>): Promise<Blob> =>
   once(document, args, (instance, options) => instance.toBlob(options))
+
+/** Lays `document` out once, without writing a PDF, and resolves to its pages, boxes and text. */
+export const renderToLayout = <C extends Component>(document: C, ...args: RenderArgs<C>): Promise<Layout> =>
+  once(document, args, (instance, options) => instance.toLayout(options))
 
 /**
  * Renders `document` once as a stream of PDF chunks. The document is unmounted when the
