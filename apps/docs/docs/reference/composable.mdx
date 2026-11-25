@@ -49,3 +49,19 @@ const { url } = usePdf(ReportDocument, () => ({ sections: sections.value }), { e
 ```
 
 Edits made while the dialog is closed don't render; opening it renders once, with the current data.
+
+## useWorkerPdf(client, name, props?, options?)
+
+```ts
+import { createPdfWorker, exposeDocuments, useWorkerPdf } from 'vue-pdf-document/worker'
+```
+
+From the `vue-pdf-document/worker` entry. Renders in a Web Worker and returns the same refs and `update()` as `usePdf`. See [Rendering in a worker](/guides/workers).
+
+| export                                                      | what it does                                                                                                                              |
+| ----------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `exposeDocuments(documents, { setup? })`                    | In the worker: registers documents by name and answers render requests. Returns `documents`.                                              |
+| `createPdfWorker<typeof documents>(worker)`                 | On the main thread: `render(name, props?, { signal? })` resolves to a `Blob`; `terminate()` stops the worker and rejects pending renders. |
+| `useWorkerPdf(client, name, props?, { debounce, enabled })` | `blob`, `url`, `loading`, `error`, `pageCount` and `update`, with the debounce, newest-wins and URL lifetime of `usePdf`.                 |
+
+Props are watched deeply and sent as structured clones: a function, symbol or DOM node rejects the render with an error naming the prop.

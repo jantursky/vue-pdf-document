@@ -10,6 +10,7 @@ export default defineMeta({
     'images-and-links',
     'fonts',
     'loading-on-demand',
+    'workers',
     'server',
     'testing',
     'migrating-from-react-pdf',

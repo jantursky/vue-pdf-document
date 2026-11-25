@@ -21,12 +21,13 @@ export default defineConfig({
   ],
   build: {
     lib: {
-      entry: root('src/index.ts'),
+      entry: { index: root('src/index.ts'), worker: root('src/worker/index.ts') },
       // ESM only: the @react-pdf packages and pdfkit's browser build ship no CommonJS.
       formats: ['es'],
-      fileName: () => 'index.js',
+      fileName: (_format, name) => `${name}.js`,
     },
     rollupOptions: {
+      output: { chunkFileNames: 'shared.js' },
       external: (id) => external.some((name) => id === name || id.startsWith(`${name}/`)),
     },
     sourcemap: true,

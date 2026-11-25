@@ -9,6 +9,8 @@ import minimalSource from './MinimalExample.vue?raw'
 import ReportDocument from './ReportDocument.vue?raw'
 import ReportExample from './ReportExample.vue'
 import reportSource from './ReportExample.vue?raw'
+import reportWorkerSource from './report.worker.ts?raw'
+import reportWorkerViewerSource from './ReportWorkerViewer.vue?raw'
 </script>
 
 <template>
@@ -65,12 +67,14 @@ import reportSource from './ReportExample.vue?raw'
         :files="[
           { name: 'ReportDocument.vue', code: ReportDocument },
           { name: 'ReportExample.vue', code: reportSource },
+          { name: 'ReportWorkerViewer.vue', code: reportWorkerViewerSource },
+          { name: 'report.worker.ts', code: reportWorkerSource },
         ]"
       >
         <template #description>
           <p>
             Long content split across pages, a <code>fixed</code> header and footer, and page numbers from the
-            <code>#render</code> slot.
+            <code>#render</code> slot. Tick the box to lay it out in a worker instead of the main thread.
           </p>
         </template>
         <ReportExample />

@@ -12,7 +12,7 @@ const run = (command, args, cwd) => execFileSync(command, args, { cwd, encoding:
 try {
   const [packed] = JSON.parse(run('npm', ['pack', '--json', '--pack-destination', dir], packageDir))
   const files = packed.files.map((file) => file.path).sort()
-  const allowed = /^(dist\/index\.(js|js\.map|d\.ts)|README\.md|CHANGELOG\.md|LICENSE|package\.json)$/
+  const allowed = /^(dist\/(index|worker|shared)\.(js|js\.map|d\.ts)|README\.md|CHANGELOG\.md|LICENSE|package\.json)$/
   const unexpected = files.filter((file) => !allowed.test(file))
   if (unexpected.length > 0) throw new Error(`Unexpected files in the tarball: ${unexpected.join(', ')}`)
   console.log(`tarball: ${packed.filename}, ${files.length} files, ${(packed.size / 1024).toFixed(1)} kB`)
@@ -37,6 +37,12 @@ for await (const chunk of Readable.fromWeb(renderToStream(Hello))) streamed.push
 const joined = Buffer.concat(streamed)
 if (joined.subarray(0, 5).toString() !== '%PDF-') throw new Error('Streamed output is not a PDF')
 console.log('streamed ' + joined.length + ' bytes in ' + streamed.length + ' chunks')
+
+const worker = await import('vue-pdf-document/worker')
+for (const name of ['createPdfWorker', 'exposeDocuments', 'useWorkerPdf']) {
+  if (typeof worker[name] !== 'function') throw new Error('vue-pdf-document/worker does not export ' + name)
+}
+console.log('worker entry works')
 `,
   )
   console.log(run('node', ['consumer.js'], dir).trim())

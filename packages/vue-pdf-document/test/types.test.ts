@@ -39,6 +39,7 @@ import {
   type TableCell,
   type View,
 } from '../src'
+import { createPdfWorker, useWorkerPdf } from '../src/worker'
 import Invoice from './fixtures/Invoice.vue'
 
 type PropsOf<T extends abstract new (...args: never) => { $props: unknown }> = InstanceType<T>['$props']
@@ -173,6 +174,27 @@ describe('public types', () => {
       usePdf(Invoice, () => ({ customer: 'Ada', items: 'none' }))
     }
     expectTypeOf(calls).toBeFunction()
+  })
+
+  it('checks worker document names and props', () => {
+    const items: { name: string; price: number }[] = []
+    const _Plain = defineComponent(() => () => h('div'))
+    const calls = () => {
+      const client = createPdfWorker<{ invoice: typeof Invoice; plain: typeof _Plain }>(new Worker('x'))
+      void client.render('invoice', { customer: 'Ada', items }, { signal: AbortSignal.abort() })
+      void client.render('plain')
+      useWorkerPdf(client, 'invoice', () => ({ customer: 'Ada', items }), { debounce: 0 })
+      useWorkerPdf(client, 'plain')
+
+      // @ts-expect-error invoce is not a document name
+      void client.render('invoce', { customer: 'Ada', items })
+      // @ts-expect-error customer is a string
+      void client.render('invoice', { customer: 1, items })
+      // @ts-expect-error invoice has required props
+      useWorkerPdf(client, 'invoice')
+    }
+    expectTypeOf(calls).toBeFunction()
+    expectTypeOf(useWorkerPdf).returns.toEqualTypeOf<UsePdfReturn>()
   })
 
   it('checks document-props of the viewer and the link against the document', () => {

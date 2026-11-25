@@ -4,6 +4,12 @@ All notable changes to `vue-pdf-document` are listed here. The format follows [K
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-11-25
+
+### Added
+
+- `vue-pdf-document/worker`: render documents in a Web Worker. `exposeDocuments()` registers documents by name in a worker module, `createPdfWorker()` returns a client with `render(name, props, { signal })` and `terminate()`, and `useWorkerPdf()` follows a document like `usePdf` does. Props are sent as structured clones with a clear error for functions, aborted renders are cancelled in the worker, and the PDF bytes are transferred, not copied.
+
 ## [1.4.0] - 2026-11-07
 
 ### Added
@@ -99,6 +105,7 @@ The first stable version.
 - An invoice generator in the demo app, on its own tab: VAT per rate, discounts, reverse charge, an EPC payment QR code, a logo, English and Slovak, and JSON export and import.
 
 [Unreleased]: https://www.npmjs.com/package/vue-pdf-document
+[1.5.0]: https://www.npmjs.com/package/vue-pdf-document/v/1.5.0
 [1.4.0]: https://www.npmjs.com/package/vue-pdf-document/v/1.4.0
 [1.3.0]: https://www.npmjs.com/package/vue-pdf-document/v/1.3.0
 [1.2.1]: https://www.npmjs.com/package/vue-pdf-document/v/1.2.1

@@ -3,12 +3,6 @@ import {
   type App,
   type ComponentInternalInstance,
   onMounted,
-  onScopeDispose,
-  readonly,
-  ref,
-  shallowRef,
-  toValue,
-  watch,
   type Component,
   type MaybeRefOrGetter,
   type Ref,
@@ -16,10 +10,8 @@ import {
 
 import type { DocumentPropsOf, PropsOptional } from '../components/types'
 import type { Props } from '../core/nodes'
-import { isAbortError, mountDocument, type PdfInstance } from '../core/pdf'
-
-/** How long a replaced object URL stays valid, for downloads and frames still reading it. */
-const REVOKE_DELAY = 10_000
+import { mountDocument, type PdfInstance } from '../core/pdf'
+import { createScheduler } from './scheduler'
 
 export interface UsePdfOptions {
   /** Milliseconds to wait after the last change before rendering again. `100` by default. */
@@ -82,109 +74,32 @@ export function usePdf<C extends Component>(document: C, ...args: UsePdfArgs<C>)
   const options: UsePdfOptions = args[1] ?? {}
   const { debounce = 100, enabled = true, inheritContext = false } = options
   const host = inheritContext ? getCurrentInstance() : null
-  const isEnabled = (): boolean => toValue(enabled)
-  const blob = shallowRef<Blob | null>(null)
-  const url = ref<string | null>(null)
-  const loading = ref(isEnabled())
-  const error = shallowRef<unknown>(null)
-  const pageCount = ref<number | null>(null)
 
   let instance: PdfInstance | undefined
   let stop: (() => void) | undefined
-  let disposed = false
-  let run = 0
-  let timer: ReturnType<typeof setTimeout> | undefined
-  let controller: AbortController | undefined
 
-  /** Drops the pending and the running render. */
-  const cancel = (): void => {
-    run++
-    clearTimeout(timer)
-    controller?.abort()
-  }
+  const { start, schedule, ...result } = createScheduler({
+    debounce,
+    enabled,
+    render: async (signal) => {
+      if (!instance) throw new Error('[vue-pdf-document] The document is not mounted.')
+      const blob = await instance.toBlob({ signal })
+      return { blob, pageCount: instance.pageCount }
+    },
+    onDispose: () => {
+      stop?.()
+      instance?.unmount()
+    },
+  })
 
-  // A replaced URL may still be loading in a frame or downloading from a link, so it is
-  // revoked a little later. Everything left is revoked when the scope ends.
-  const retiring = new Map<string, ReturnType<typeof setTimeout>>()
-  const retire = (old: string): void => {
-    retiring.set(
-      old,
-      setTimeout(() => {
-        retiring.delete(old)
-        URL.revokeObjectURL(old)
-      }, REVOKE_DELAY),
-    )
-  }
-  const setUrl = (next: string | null): void => {
-    if (url.value) retire(url.value)
-    url.value = next
-  }
-
-  const update = async (): Promise<void> => {
-    if (!instance || !isEnabled()) return
-    clearTimeout(timer)
-    const current = ++run
-    controller?.abort()
-    const own = (controller = new AbortController())
-    loading.value = true
-    try {
-      const result = await instance.toBlob({ signal: own.signal })
-      // A newer render started meanwhile; its result wins.
-      if (current !== run) return
-      pageCount.value = instance.pageCount
-      blob.value = result
-      setUrl(URL.createObjectURL(result))
-      error.value = null
-    } catch (caught) {
-      if (current === run && !isAbortError(caught)) error.value = caught
-    } finally {
-      if (current === run) loading.value = false
-    }
-  }
-
-  const start = (): void => {
-    if (disposed) return
+  const mount = (): void => {
     instance = mountDocument(document, props, host ? { setup: (app) => inherit(app, host) } : {})
-    stop = instance.onChange(() => {
-      clearTimeout(timer)
-      if (isEnabled()) timer = setTimeout(() => void update(), debounce)
-    })
-    void update()
+    stop = instance.onChange(schedule)
+    start()
   }
 
-  watch(isEnabled, (on) => {
-    if (!instance) return
-    if (on) {
-      void update()
-      return
-    }
-    cancel()
-    loading.value = false
-  })
+  if (getCurrentInstance()) onMounted(mount)
+  else mount()
 
-  if (getCurrentInstance()) onMounted(start)
-  else start()
-
-  onScopeDispose(() => {
-    disposed = true
-    cancel()
-    stop?.()
-    instance?.unmount()
-    for (const [old, pending] of retiring) {
-      clearTimeout(pending)
-      URL.revokeObjectURL(old)
-    }
-    retiring.clear()
-    if (url.value) URL.revokeObjectURL(url.value)
-    url.value = null
-  })
-
-  return {
-    blob: readonly(blob),
-    url: readonly(url),
-    loading: readonly(loading),
-    error: readonly(error),
-    pageCount: readonly(pageCount),
-    update,
-  }
+  return result
 }

@@ -13,10 +13,17 @@ export default defineConfig(({ command }) => ({
   plugins: [vue()],
   // The layout engine, fontkit and pdfkit are about 1 MB minified; the warning would fire on every build.
   build: { chunkSizeWarningLimit: 1200 },
+  worker: { format: 'es', plugins: () => [vue()] },
   define: {
     __VUE_PDF_VERSION__: JSON.stringify(version),
   },
   resolve: {
-    alias: command === 'serve' ? [{ find: /^vue-pdf-document$/, replacement: lib('src/index.ts') }] : [],
+    alias:
+      command === 'serve'
+        ? [
+            { find: /^vue-pdf-document$/, replacement: lib('src/index.ts') },
+            { find: /^vue-pdf-document\/worker$/, replacement: lib('src/worker/index.ts') },
+          ]
+        : [],
   },
 }))

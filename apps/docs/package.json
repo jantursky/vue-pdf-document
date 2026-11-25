@@ -19,5 +19,8 @@
     "blume": "^2.2.4",
     "vue": "^3.5.0",
     "vue-pdf-document": "workspace:*"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^6"
   }
 }

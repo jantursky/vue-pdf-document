@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs'
 
+import vue from '@vitejs/plugin-vue'
 import { defineConfig } from 'blume'
 
 const pkg = JSON.parse(
@@ -33,6 +34,18 @@ export default defineConfig({
   variables: {
     version: pkg.version,
   },
+  integrations: [
+    {
+      // The Report example starts a module worker that imports .vue files, and Vite builds
+      // workers with their own plugin list.
+      name: 'vue-in-workers',
+      hooks: {
+        'astro:config:setup': ({ updateConfig }) => {
+          updateConfig({ vite: { worker: { format: 'es', plugins: () => [vue()] } } })
+        },
+      },
+    },
+  ],
   // The live previews run the demo app's example files, so the docs and the demo never drift apart.
   examples: {
     source: '../example/src/examples/*Example.vue',

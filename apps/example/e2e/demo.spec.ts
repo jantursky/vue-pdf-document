@@ -60,6 +60,23 @@ test('paginates the report as sections are added', async ({ page }) => {
   expect(many).toBeGreaterThan(few)
 })
 
+test('renders the report in a worker', async ({ page }) => {
+  const example = page.locator('#example-report')
+  const frame = example.locator('[data-pdf-viewer-frame]')
+  const before = await frameSrc(example)
+  await example.getByLabel('Render in a worker').check()
+  await expect(frame).not.toHaveAttribute('src', before)
+  const { pages: few } = await readPdf(page, await frameSrc(example))
+
+  const workerFrame = await frameSrc(example)
+  await example.getByRole('slider').fill('60')
+  await expect(frame).not.toHaveAttribute('src', workerFrame, { timeout: 30_000 })
+  const { header, pages: many } = await readPdf(page, await frameSrc(example))
+  expect(header).toBe('%PDF-')
+  expect(many).toBeGreaterThan(few)
+  await expect(example.locator('[data-page-count]')).toHaveText(`${many} pages`)
+})
+
 test('shows the source of an example', async ({ page }) => {
   const example = page.locator('#example-invoice')
   await example.getByRole('button', { name: 'View source' }).click()

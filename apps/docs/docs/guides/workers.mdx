@@ -1,0 +1,92 @@
+---
+title: Rendering in a worker
+description: Lay out and render documents in a Web Worker, so long reports don't block input.
+---
+
+Layout and pdfkit run on the main thread by default. A 30-page report can block input for hundreds of milliseconds on every re-render. The engine has no DOM dependency, so `vue-pdf-document/worker` moves it into a Web Worker. Apps that don't import that entry ship none of its code.
+
+Vue components can't cross a thread boundary, so the worker imports the documents itself and the main thread sends names and data.
+
+## In the worker
+
+Expose your documents by name. Fonts are registered here, because the worker has its own font store.
+
+```ts
+// pdf.worker.ts
+import { Font } from 'vue-pdf-document'
+import { exposeDocuments } from 'vue-pdf-document/worker'
+
+import InvoiceDocument from './InvoiceDocument.vue'
+import ReportDocument from './ReportDocument.vue'
+
+Font.register({ family: 'Inter', src: '/fonts/Inter-Regular.ttf' })
+
+export const documents = exposeDocuments({ invoice: InvoiceDocument, report: ReportDocument })
+```
+
+`exposeDocuments(documents, { setup })` applies `setup(app)` to every document app it mounts, for plugins such as vue-i18n. Renders run one at a time.
+
+## On the main thread
+
+Create the worker with your bundler's syntax and wrap it. Passing `typeof documents` as the type argument checks names and props.
+
+```ts
+import { createPdfWorker } from 'vue-pdf-document/worker'
+
+import type { documents } from './pdf.worker'
+
+const worker = new Worker(new URL('./pdf.worker.ts', import.meta.url), { type: 'module' })
+export const pdfWorker = createPdfWorker<typeof documents>(worker)
+
+const blob = await pdfWorker.render('invoice', { customer: 'Ada' }, { signal })
+```
+
+Vite and webpack 5 both understand `new Worker(new URL(...), { type: 'module' })` with no plugin. With Vite, add the Vue plugin to the worker build when the worker imports `.vue` files:
+
+```ts
+// vite.config.ts
+export default defineConfig({
+  plugins: [vue()],
+  worker: { format: 'es', plugins: () => [vue()] },
+})
+```
+
+`useWorkerPdf(client, name, props?, options?)` is `usePdf` for a worker. It returns the same `blob`, `url`, `loading`, `error`, `pageCount` and `update`, and takes `debounce` and `enabled`.
+
+```ts
+import { useWorkerPdf } from 'vue-pdf-document/worker'
+
+const { url, loading, error } = useWorkerPdf(pdfWorker, 'report', () => ({ sections: sections.value }), {
+  debounce: 250,
+})
+```
+
+Call `pdfWorker.terminate()` when you're done, for example in `onScopeDispose`. Pending renders reject.
+
+## Showing the result
+
+`<PdfViewer>` and `<PdfDownloadLink>` render in-thread and are unchanged. To show a worker render, use the `url` in a plain frame, or in the slots of those components:
+
+```html
+<iframe v-if="url" :src="url" title="Report" />
+```
+
+## Props must be cloneable
+
+Props travel as structured clones. Refs and reactive proxies are unwrapped at any depth, but functions, symbols and DOM nodes can't be cloned. The render rejects before anything is posted, with an error naming the prop:
+
+```text
+[vue-pdf-document] Prop "rows[0].format" can't be sent to a worker: a function can't be cloned.
+```
+
+Pass data and format it in the document. `useWorkerPdf` watches its props deeply, which is cheap for small objects. For very large props, pass a `toRaw` object and call `update()` yourself.
+
+## Cancelling
+
+Aborting a render's `signal` rejects it with `AbortError` on the main thread and tells the worker to drop it. `useWorkerPdf` aborts a render a newer one overtakes. The PDF bytes are transferred from the worker, not copied.
+
+## Limits
+
+- One render runs at a time per worker; there is no pool.
+- Fonts and images registered on the main thread aren't visible in the worker. A font error from the worker reminds you of this.
+- Module workers need Safari 15 or later.
