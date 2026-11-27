@@ -24,6 +24,10 @@ jobs:
         with:
           node-version: 22
       - run: bun install --frozen-lockfile
+      # The example app imports vue-pdf-document/worker through its built types, so lint and
+      # typecheck need dist/ first.
+      - name: Build the library
+        run: bun run build:lib
       - name: Code samples in the README and docs are in sync
         run: node scripts/samples.js --check
       - name: Format

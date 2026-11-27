@@ -4,6 +4,12 @@ All notable changes to `vue-pdf-document` are listed here. The format follows [K
 
 ## [Unreleased]
 
+## [1.5.1] - 2026-11-27
+
+### Fixed
+
+- The 1.5.0 release did not reach npm: its CI checks ran lint and typecheck before the library was built, so the `vue-pdf-document/worker` types were missing. CI and the release workflow now build the library first. The code is unchanged.
+
 ## [1.5.0] - 2026-11-25
 
 ### Added
@@ -105,6 +111,7 @@ The first stable version.
 - An invoice generator in the demo app, on its own tab: VAT per rate, discounts, reverse charge, an EPC payment QR code, a logo, English and Slovak, and JSON export and import.
 
 [Unreleased]: https://www.npmjs.com/package/vue-pdf-document
+[1.5.1]: https://www.npmjs.com/package/vue-pdf-document/v/1.5.1
 [1.5.0]: https://www.npmjs.com/package/vue-pdf-document/v/1.5.0
 [1.4.0]: https://www.npmjs.com/package/vue-pdf-document/v/1.4.0
 [1.3.0]: https://www.npmjs.com/package/vue-pdf-document/v/1.3.0
